@@ -1,0 +1,47 @@
+#!/run/current-system/sw/bin/bash
+
+curl -X POST http://localhost:4000/api/apartments \
+  -F 'data={
+    "title": "Luxury Penthouse in Sanepa with Panoramic City Views",
+    "slug": "luxury-penthouse-panoramic-views-sanepa-lalitpur-001",
+    "summary": "Stunning fully furnished penthouse featuring 3 bedrooms, private rooftop terrace, and breathtaking panoramic views of the city and mountains.",
+    "description": "Experience the pinnacle of urban living in this exceptional penthouse apartment in Sanepa, one of Kathmandu most sought-after expat neighborhoods. This fully furnished residence combines luxury finishes with stunning views.\n\nThe open-plan living and dining area features floor-to-ceiling windows showcasing panoramic city and mountain views. The gourmet kitchen includes quartz countertops, premium appliances, and a breakfast bar. A guest bedroom with bathroom completes this level.\n\nThe private rooftop terrace is perfect for entertaining while enjoying the Himalayan sunrise or city lights at night. The building offers 24/7 security, backup power, and elevator access.\n\nAdditional amenities include covered parking, storage space, and access to building amenities. Walking distance to UN Park, embassies, and international restaurants.",
+    "propertyType": "APARTMENT",
+    "listingType": "RENT",
+    "priceAmount": 150000,
+    "currency": "NPR",
+    "pricePeriod": "MONTHLY",
+    "status": "PUBLISHED",
+    "isFeatured": true,
+    "badgeLabel": "Penthouse",
+    "badgeTone": "NEUTRAL",
+    "locationText": "Sanepa, Lalitpur",
+    "district": "Lalitpur",
+    "city": "Lalitpur",
+    "latitude": 27.6834,
+    "longitude": 85.3123,
+    "areaValue": 2800,
+    "areaUnit": "SQ_FT",
+    "titleStatus": "Clear Title",
+    "waterAvailability": "Municipal & Tank",
+    "electricity": "3-Phase with Backup",
+    "isVerified": true,
+    "isOwnerApproved": true,
+    "details": {
+      "subType": "PENTHOUSE",
+      "bedrooms": 3,
+      "bathrooms": 4,
+      "balconies": 2,
+      "floorNumber": 8,
+      "totalFloors": 8,
+      "hasLift": true,
+      "hasParking": true,
+      "furnishingStatus": "FULLY_FURNISHED"
+    }
+  }' \
+  -F 'images=@../../uploads/properties/apartments/a-large-building-with-a-clock-on-top-free-photo.jpg' \
+  -F 'images=@../../uploads/properties/apartments/buildings-in-the-city-photo.jpg' \
+  -F 'images=@../../uploads/properties/apartments/multistorey-building-with-new-modern-apartments-photo.jpg' \
+  -F 'images=@../../uploads/properties/apartments/new-modern-tall-blue-glass-multi-storey-comfortable-urban-monolithic-frame-houses-buildings-skyscrapers-new-buildings-in-the-big-city-of-the-megalopolis-photo.jpg' \
+  -F 'images=@../../uploads/properties/apartments/new-high-rise-apartament-building-with-multiple-balcony-and-windows-on-blue-sky-with-white-clouds-background-photo.jpg' \
+  -F 'images=@../../uploads/properties/apartments/a-tall-multi-storey-glass-building-in-a-white-and-brown-city-the-house-has-balconies-stylish-decoration-ergonomic-arrangement-against-the-backdrop-of-a-sunny-blue-sunny-sky-photo.jpg'
