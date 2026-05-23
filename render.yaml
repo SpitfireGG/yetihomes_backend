@@ -12,8 +12,6 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22
-      - key: PORT
-        value: 4000
       - key: CORS_ORIGINS
         value: https://yetihomes-admin.onrender.com,https://yetihomes-frontend.onrender.com
       - key: DATABASE_URL
