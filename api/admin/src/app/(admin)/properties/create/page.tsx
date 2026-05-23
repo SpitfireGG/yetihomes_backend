@@ -896,7 +896,7 @@ export default function CreatePropertyPage() {
                 <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border/60 bg-muted/30">
                   {getVideoEmbedUrl(formData.videoUrl) ? (
                     <iframe
-                      src={getVideoEmbedUrl(formData.videoUrl)}
+                      src={getVideoEmbedUrl(formData.videoUrl)!}
                       className="absolute inset-0 w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
