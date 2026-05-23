@@ -35,6 +35,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  await app.listen(process.env.PORT ?? 4000);
+  const port = process.env.PORT ?? 4000;
+  console.log(`[YetiHomes API] Starting on PORT=${port}, NODE_ENV=${process.env.NODE_ENV}`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`[YetiHomes API] Listening on 0.0.0.0:${port}`);
 }
 bootstrap();
