@@ -3,7 +3,7 @@ services:
     name: yetihomes-api
     rootDir: api
     runtime: node
-    repo: https://github.com/YOUR_USERNAME/YOUR_REPO
+    repo: https://github.com/SpitfireGG/yetihomes_backend
     plan: free
     region: oregon
     buildCommand: npm install && npx prisma generate && npm run build
@@ -15,7 +15,7 @@ services:
       - key: PORT
         value: 4000
       - key: CORS_ORIGINS
-        value: https://yetihomes-admin.onrender.com
+        value: https://yetihomes-admin.onrender.com,https://yetihomes-frontend.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: yetihomes-db
@@ -47,7 +47,7 @@ services:
     name: yetihomes-admin
     rootDir: api/admin
     runtime: node
-    repo: https://github.com/YOUR_USERNAME/YOUR_REPO
+    repo: https://github.com/SpitfireGG/yetihomes_backend
     plan: free
     region: oregon
     buildCommand: npm install && npm run build
