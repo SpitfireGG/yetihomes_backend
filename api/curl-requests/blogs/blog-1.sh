@@ -1,0 +1,8 @@
+#!/run/current-system/sw/bin/bash
+
+curl -s -X POST http://localhost:4000/api/blogs \
+  -H "Authorization: Bearer $AUTH_TOKEN" \
+  -H "Content-Type: multipart/form-data" \
+  -F "data={\"slug\":\"top-10-neighborhoods-kathmandu-2026\",\"title\":\"Top 10 Neighborhoods in Kathmandu for Property Investment in 2026\",\"category\":\"Market Trends\",\"excerpt\":\"Discover the most promising areas in Kathmandu Valley for real estate investment. From established residential zones to emerging commercial hubs, we analyze the best locations for maximum returns.\",\"content\":\"Kathmandus real estate market is evolving rapidly, with new neighborhoods emerging as prime investment destinations. Here are the top 10 neighborhoods that offer the best investment potential in 2026. 1. Lazimpat - Premium residential area with excellent infrastructure. 2. Koteshwor - Growing commercial hub with good connectivity. 3. Thamel - Tourist-friendly with high rental demand. 4. Sanepa - Emerging as a mixed-use development zone. 5. Budhanilkantha - Upscale residential with mountain views. 6. Baneshwor - Proximity to TU makes it ideal for rental properties. 7. Jawalakhel - Family-friendly with good schools nearby. 8. Patan - Historic charm combined with modern amenities. 9. Kupondole - Commercial growth with investment potential. 10. Godavari - Agricultural land with development prospects.\",\"author\":\"Kiran Mahat\",\"authorRole\":\"CEO, Yeti Homes\",\"readTime\":\"8 min read\",\"isFeatured\":true}" \
+  -F "images=@../uploads/properties/1778427003834-.jpg" \
+  -F "images=@../uploads/properties/1778427003835-.jpg"

@@ -1,0 +1,8 @@
+#!/run/current-system/sw/bin/bash
+
+curl -s -X POST http://localhost:4000/api/blogs \
+  -H "Authorization: Bearer $AUTH_TOKEN" \
+  -H "Content-Type: multipart/form-data" \
+  -F "data={\"slug\":\"first-time-homebuyer-guide-nepal\",\"title\":\"Complete Guide for First-Time Home Buyers in Nepal\",\"category\":\"Buyer Guide\",\"excerpt\":\"Buying your first home is a significant milestone. This comprehensive guide walks you through every step of the property buying process in Nepal, from financing to final documentation.\",\"content\":\"Purchasing your first home is one of the most important decisions you will ever make. In Nepal, the process can seem overwhelming with numerous documents, legal requirements, and decisions to navigate. Here are the key steps: 1. Determine Your Budget - Assess your financial situation and consider additional costs. 2. Choose the Right Location - Consider proximity to workplace, schools, and amenities. 3. Understand Property Types - Apartments, houses, and land each have pros and cons. 4. Legal Documentation - Ensure ownership certificate, tax clearance, building permit, and encumbrance certificate are in order. 5. Property Verification - Verify physically and legally. 6. Finalize the Purchase - Complete registration at the Land Revenue Office. Our team at Yeti Homes is here to guide you through every step.\",\"author\":\"Sarita Shrestha\",\"authorRole\":\"Senior Property Consultant\",\"readTime\":\"12 min read\",\"isFeatured\":true}" \
+  -F "images=@../uploads/properties/1778427003836-.jpg" \
+  -F "images=@../uploads/properties/1778427003840-.jpg"

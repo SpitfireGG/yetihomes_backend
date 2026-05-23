@@ -1,0 +1,103 @@
+import { BlogsService } from './blog.service';
+export declare class BlogsController {
+    private readonly blogsService;
+    constructor(blogsService: BlogsService);
+    create(dataString: string, files: Express.Multer.File[]): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            id: string;
+            updatedAt: Date;
+            title: string;
+            slug: string;
+            isFeatured: boolean;
+            content: string;
+            category: string;
+            excerpt: string;
+            coverImage: string | null;
+            author: string;
+            authorRole: string;
+            authorImage: string | null;
+            readTime: string;
+            publishDate: Date;
+            seoMetadataId: string | null;
+            categoryId: string | null;
+        };
+    }>;
+    findAll(): Promise<{
+        id: string;
+        updatedAt: Date;
+        title: string;
+        slug: string;
+        isFeatured: boolean;
+        content: string;
+        category: string;
+        excerpt: string;
+        coverImage: string | null;
+        author: string;
+        authorRole: string;
+        authorImage: string | null;
+        readTime: string;
+        publishDate: Date;
+        seoMetadataId: string | null;
+        categoryId: string | null;
+    }[]>;
+    findBySlug(slug: string): Promise<{
+        id: string;
+        updatedAt: Date;
+        title: string;
+        slug: string;
+        isFeatured: boolean;
+        content: string;
+        category: string;
+        excerpt: string;
+        coverImage: string | null;
+        author: string;
+        authorRole: string;
+        authorImage: string | null;
+        readTime: string;
+        publishDate: Date;
+        seoMetadataId: string | null;
+        categoryId: string | null;
+    }>;
+    update(id: string, dataString: string, files: Express.Multer.File[]): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            id: string;
+            updatedAt: Date;
+            title: string;
+            slug: string;
+            isFeatured: boolean;
+            content: string;
+            category: string;
+            excerpt: string;
+            coverImage: string | null;
+            author: string;
+            authorRole: string;
+            authorImage: string | null;
+            readTime: string;
+            publishDate: Date;
+            seoMetadataId: string | null;
+            categoryId: string | null;
+        };
+    }>;
+    remove(id: string): Promise<{
+        id: string;
+        updatedAt: Date;
+        title: string;
+        slug: string;
+        isFeatured: boolean;
+        content: string;
+        category: string;
+        excerpt: string;
+        coverImage: string | null;
+        author: string;
+        authorRole: string;
+        authorImage: string | null;
+        readTime: string;
+        publishDate: Date;
+        seoMetadataId: string | null;
+        categoryId: string | null;
+    }>;
+}

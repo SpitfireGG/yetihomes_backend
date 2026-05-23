@@ -1,0 +1,6 @@
+#!/run/current-system/sw/bin/bash
+
+curl -s -X POST http://localhost:4000/api/blogs \
+  -H "Authorization: Bearer $AUTH_TOKEN" \
+  -H "Content-Type: multipart/form-data" \
+  -F "data={\"slug\":\"understanding-lal-purja-nepal\",\"title\":\"Understanding Lal Purja: A Complete Guide to Property Ownership in Nepal\",\"category\":\"Legal\",\"excerpt\":\"Lal Purja is the cornerstone of property ownership in Nepal. Learn what it is, how to verify it, and what to watch out for when buying property with this essential document.\",\"content\":\"Lal Purja, or the Ownership Certificate, is the most important document for property ownership in Nepal. Issued by the Land Revenue Office, it proves legal ownership of land and buildings. When buying property, always verify: the owner name matches the seller, the area matches the actual measurement, there are no mortgages or liens recorded, the property type matches the actual use, and there are no boundary disputes. Common issues include forged documents, partial ownership disputes, and government acquisition notices. Always verify the Lal Purja at the Land Revenue Office before making any payment. A legal advisor can help identify potential issues that might not be obvious from the document alone.\",\"author\":\"Anjali Gurung\",\"authorRole\":\"Land Acquisition Manager\",\"readTime\":\"9 min read\",\"isFeatured\":false}"

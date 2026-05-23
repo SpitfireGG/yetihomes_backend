@@ -1,0 +1,1 @@
+export declare function ImageUploadInterceptor(fieldName: string, folderName: string, maxFiles?: number, maxSizeMB?: number): import("@nestjs/common").Type<import("@nestjs/common").NestInterceptor<any, any>>;

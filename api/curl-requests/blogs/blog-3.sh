@@ -1,0 +1,8 @@
+#!/run/current-system/sw/bin/bash
+
+curl -s -X POST http://localhost:4000/api/blogs \
+  -H "Authorization: Bearer $AUTH_TOKEN" \
+  -H "Content-Type: multipart/form-data" \
+  -F "data={\"slug\":\"sustainable-housing-nepal-future\",\"title\":\"The Rise of Sustainable Housing in Nepal: A Greener Future\",\"category\":\"Sustainability\",\"excerpt\":\"Explore how sustainable housing is gaining momentum in Nepal, with more developers and buyers embracing eco-friendly practices and green building technologies.\",\"content\":\"As environmental awareness grows globally, Nepal is seeing a significant shift toward sustainable housing. From solar-powered homes to rainwater harvesting systems, eco-friendly features are becoming increasingly popular. Why Sustainable Housing Matters: 1. Environmental Impact - Sustainable homes use eco-friendly materials and energy-efficient designs. 2. Cost Savings - Long-term savings through reduced energy bills. 3. Health Benefits - Better ventilation and natural lighting. Popular Sustainable Features in Nepal: Solar panel installations, Rainwater harvesting systems, Natural ventilation designs, Thermal insulation, LED lighting, Green rooftops. Government Initiatives include tax benefits for green buildings. At Yeti Homes, we are committed to promoting sustainable development.\",\"author\":\"Rajendra Basnet\",\"authorRole\":\"Head of Marketing and Digital Strategy\",\"readTime\":\"6 min read\",\"isFeatured\":false}" \
+  -F "images=@../uploads/properties/1778427003834-.jpg" \
+  -F "images=@../uploads/properties/1778427003835-.jpg"

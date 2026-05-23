@@ -1,0 +1,754 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model CompanyInfo {
+  id           String   @id @default(uuid())
+  name         String
+  description  String
+  mission      String?
+  vision       String?
+  contactEmail String?
+  phone        String?
+  address      String?
+  latitude     Decimal? @db.Decimal(10, 7)
+  longitude    Decimal? @db.Decimal(10, 7)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  LAND
+}
+
+enum ListingType {
+  SALE
+  RENT
+}
+
+enum PricePeriod {
+  TOTAL
+  MONTHLY
+  YEARLY
+}
+
+enum PropertyStatus {
+  DRAFT
+  PUBLISHED
+  SOLD
+  RENTED
+  ARCHIVED
+}
+
+enum CurrencyCode {
+  NPR
+  USD
+}
+
+enum AreaUnit {
+  SQ_FT
+  SQ_M
+  AANA
+  ROPANI
+}
+
+enum BadgeTone {
+  NEUTRAL
+  WARM
+  COOL
+}
+
+enum FurnishingStatus {
+  UNFURNISHED
+  SEMI_FURNISHED
+  FULLY_FURNISHED
+}
+
+enum HouseSubType {
+  BUNGALOW
+  VILLA
+  DUPLEX
+  TOWNHOUSE
+}
+
+enum HouseUsageType {
+  RESIDENTIAL
+  COMMERCIAL
+  SEMI_COMMERCIAL
+}
+
+enum ApartmentSubType {
+  STUDIO
+  APARTMENT
+  PENTHOUSE
+  CONDO
+}
+
+enum LandSubType {
+  RESIDENTIAL_PLOT
+  COMMERCIAL_LAND
+  AGRICULTURAL_LAND
+}
+
+enum FacingDirection {
+  EAST
+  WEST
+  NORTH
+  SOUTH
+  NORTH_EAST
+  NORTH_WEST
+  SOUTH_EAST
+  SOUTH_WEST
+}
+
+enum InquiryType {
+  GENERAL
+  PROPERTY
+  SCHEDULE_VISIT
+  SELLER
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  CLOSED
+  SPAM
+}
+
+model Property {
+  id           String         @id @default(uuid())
+  title        String
+  slug         String         @unique
+  summary      String?
+  description  String
+  propertyType PropertyType
+  listingType  ListingType
+  priceAmount  Decimal        @db.Decimal(14, 2)
+  currency     CurrencyCode   @default(NPR)
+  pricePeriod  PricePeriod    @default(TOTAL)
+  status       PropertyStatus @default(DRAFT)
+  isFeatured   Boolean        @default(false)
+  badgeLabel   String?
+  badgeTone    BadgeTone?
+  locationText String
+  district     String?
+  city         String?
+  latitude     Decimal?       @db.Decimal(10, 7)
+  longitude    Decimal?       @db.Decimal(10, 7)
+  areaValue    Decimal?       @db.Decimal(12, 2)
+  areaUnit     AreaUnit?
+
+  titleStatus       String? @default("Clear Lal Purja")
+  waterAvailability String?
+  electricity       String?
+
+  isVerified      Boolean @default(false)
+  isOwnerApproved Boolean @default(false)
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  videoUrl  String?
+  mapIframe String? @db.Text
+
+  locationPageId String?
+  locationPage   LocationPage? @relation(fields: [locationPageId], references: [id])
+  agentId        String?
+  agent          Agent?        @relation(fields: [agentId], references: [id])
+
+  houseDetails      HouseDetails?
+  apartmentDetails  ApartmentDetails?
+  landDetails       LandDetails?
+  images            PropertyImage[]
+  propertyAmenities PropertyAmenity[]
+  inquiries         Inquiry[]
+  seoMetadata       SeoMetadata[]
+
+  @@index([propertyType, status])
+  @@index([listingType, status])
+  @@index([city, district])
+  @@index([priceAmount])
+  @@index([status, propertyType, listingType, priceAmount])
+  @@index([status, isFeatured])
+  @@index([status, createdAt])
+  @@index([isVerified])
+  @@index([slug])
+  @@index([locationPageId])
+  @@index([agentId])
+}
+
+model HouseDetails {
+  id               String            @id @default(uuid())
+  propertyId       String            @unique
+  property         Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  subType          HouseSubType
+  usageType        HouseUsageType    @default(RESIDENTIAL)
+  bedrooms         Int?
+  bathrooms        Int?
+  kitchens         Int?
+  floors           Int?
+  parkingSpaces    Int?
+  furnishingStatus FurnishingStatus?
+  buildYear        Int?
+
+  @@index([propertyId])
+}
+
+model ApartmentDetails {
+  id               String            @id @default(uuid())
+  propertyId       String            @unique
+  property         Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  subType          ApartmentSubType
+  bedrooms         Int?
+  bathrooms        Int?
+  balconies        Int?
+  floorNumber      Int?
+  totalFloors      Int?
+  hasLift          Boolean           @default(false)
+  hasParking       Boolean           @default(false)
+  furnishingStatus FurnishingStatus?
+
+  @@index([propertyId])
+}
+
+model LandDetails {
+  id              String           @id @default(uuid())
+  propertyId      String           @unique
+  property        Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  subType         LandSubType
+  roadAccessFeet  Decimal?         @db.Decimal(8, 2)
+  frontageFeet    Decimal?         @db.Decimal(8, 2)
+  facingDirection FacingDirection?
+  plotShape       String?
+  zoningType      String?
+  isCornerPlot    Boolean          @default(false)
+
+  @@index([propertyId])
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url        String
+  altText    String?  @db.VarChar(200)
+  caption    String?  @db.VarChar(200)
+  width      Int?
+  height     Int?
+  mimeType   String?
+  fileSize   Int?
+  isIndexed  Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId, sortOrder])
+  @@index([propertyId, isPrimary])
+  @@index([isIndexed])
+}
+
+model Amenity {
+  id                String            @id @default(uuid())
+  name              String            @unique
+  slug              String            @unique
+  icon              String?
+  propertyAmenities PropertyAmenity[]
+  createdAt         DateTime          @default(now())
+}
+
+model PropertyAmenity {
+  propertyId String
+  amenityId  String
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, amenityId])
+  @@index([amenityId])
+}
+
+model Inquiry {
+  id         String        @id @default(uuid())
+  propertyId String?
+  property   Property?     @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  type       InquiryType   @default(GENERAL)
+  status     InquiryStatus @default(NEW)
+  fullName   String
+  email      String?
+  phone      String?
+  message    String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([propertyId, status])
+  @@index([status])
+  @@index([type, status])
+}
+
+enum LegalDocType {
+  PRIVACY_POLICY
+  COOKIE_POLICY
+  TERMS_AND_CONDITIONS
+}
+
+model LegalDocument {
+  id   String       @id @default(uuid())
+  type LegalDocType @unique
+
+  title   String
+  content String? @db.Text
+
+  version       String?
+  effectiveDate DateTime?
+  isActive      Boolean   @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("legal_documents")
+}
+
+model Newsletter {
+  id         String  @id @default(uuid())
+  email      String  @unique
+  subscribed Boolean @default(true)
+  name       String?
+  country    String?
+  source     String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("newsletters")
+}
+
+enum FaqCategory {
+  GENERAL
+  LEGAL_AND_MALPOT
+  TAXES_AND_FEES
+  HOME_LOANS
+  NRN_AND_EXPATS
+  RENTING_AND_LEASES
+  MEASUREMENTS
+}
+
+model Faq {
+  id       String @id @default(uuid())
+  question String
+  answer   String @db.Text
+
+  category    FaqCategory @default(GENERAL)
+  sortOrder   Int         @default(0)
+  isPublished Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}
+
+model Affiliation {
+  id           String  @id @default(cuid())
+  name         String
+  logoUrl      String
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  role      String
+  location  String
+  email     String   @unique
+  bio       String
+  expertise String[]
+  education String
+  thumbnail String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  seoMetadataId String?      @unique
+  seoMetadata   SeoMetadata? @relation(fields: [seoMetadataId], references: [id])
+}
+
+model Review {
+  id         String  @id @default(cuid())
+  name       String
+  role       String
+  text       String  @db.Text
+  rating     Int     @default(5)
+  isFeatured Boolean @default(false)
+  image      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogArticle {
+  id         String  @id @default(cuid())
+  slug       String  @unique
+  title      String
+  category   String
+  excerpt    String  @db.Text
+  content    String  @db.Text
+  coverImage String?
+
+  author      String
+  authorRole  String
+  authorImage String?
+
+  readTime   String
+  isFeatured Boolean @default(false)
+
+  publishDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  seoMetadataId String?       @unique
+  seoMetadata   SeoMetadata?  @relation(fields: [seoMetadataId], references: [id])
+  categoryId    String?
+  blogCategory  BlogCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+}
+
+model SupportTicket {
+  id      String @id @default(cuid())
+  name    String
+  email   String
+  subject String
+  message String @db.Text
+  status  String @default("OPEN")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SeoMetadata {
+  id String @id @default(uuid())
+
+  metaTitle       String? @db.VarChar(70)
+  metaDescription String? @db.VarChar(200)
+  canonicalUrl    String? @db.Text
+  slug            String  @unique @db.VarChar(80)
+
+  ogTitle       String? @db.VarChar(95)
+  ogDescription String? @db.VarChar(200)
+  ogImageUrl    String? @db.Text
+  ogImageWidth  Int?
+  ogImageHeight Int?
+  ogImageAlt    String?
+
+  twitterCard        String? @default("summary_large_image")
+  twitterTitle       String? @db.VarChar(70)
+  twitterDescription String? @db.VarChar(200)
+  twitterImageUrl    String? @db.Text
+
+  noindex   Boolean @default(false)
+  nofollow  Boolean @default(false)
+  noarchive Boolean @default(false)
+  nosnippet Boolean @default(false)
+
+  focusKeyword      String? @db.VarChar(100)
+  secondaryKeywords String? @db.Text
+
+  breadcrumbOverride String? @db.VarChar(200)
+
+  structuredDataOverrides Json?
+
+  locale String? @default("en")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String?
+  updatedBy String?
+
+  property         Property?         @relation(fields: [propertyId], references: [id])
+  blogArticle      BlogArticle?
+  blogCategory     BlogCategory?
+  locationPage     LocationPage?
+  propertyTypePage PropertyTypePage?
+  staticPage       StaticPage?
+  teamMember       TeamMember?
+  agent            Agent?
+  propertyId       String?
+
+  @@index([noindex])
+  @@index([focusKeyword])
+  @@map("seo_metadata")
+}
+
+model SeoAuditLog {
+  id             String  @id @default(uuid())
+  entityType     String
+  entityId       String
+  action         String
+  changedBy      String?
+  previousValues Json?
+  newValues      Json?
+  reason         String?
+
+  createdAt DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("seo_audit_logs")
+}
+
+model LocationPage {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  description String? @db.Text
+
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  district  String?
+  province  String?
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  propertyCount Int      @default(0)
+  averagePrice  Decimal? @db.Decimal(14, 2)
+
+  seoMetadataId String?      @unique
+  seoMetadata   SeoMetadata? @relation(fields: [seoMetadataId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  properties Property[]
+
+  @@index([isActive])
+  @@index([district])
+  @@map("location_pages")
+}
+
+model PropertyTypePage {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  description String? @db.Text
+
+  propertyType PropertyType
+  listingType  ListingType?
+  minBedrooms  Int?
+  maxBedrooms  Int?
+  minPrice     Decimal?     @db.Decimal(14, 2)
+  maxPrice     Decimal?     @db.Decimal(14, 2)
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  propertyCount Int @default(0)
+
+  seoMetadataId String?      @unique
+  seoMetadata   SeoMetadata? @relation(fields: [seoMetadataId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyType, listingType])
+  @@index([isActive])
+  @@map("property_type_pages")
+}
+
+model BlogCategory {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  description String? @db.Text
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  seoMetadataId String?      @unique
+  seoMetadata   SeoMetadata? @relation(fields: [seoMetadataId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles BlogArticle[]
+
+  @@index([isActive])
+  @@map("blog_categories")
+}
+
+model StaticPage {
+  id      String  @id @default(uuid())
+  slug    String  @unique
+  title   String
+  content String? @db.Text
+
+  pageType StaticPageType
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  seoMetadataId String?      @unique
+  seoMetadata   SeoMetadata? @relation(fields: [seoMetadataId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageType])
+  @@index([isActive])
+  @@map("static_pages")
+}
+
+enum StaticPageType {
+  ABOUT
+  CONTACT
+  FAQ
+  PRIVACY
+  TERMS
+  DISCLAIMER
+  SITEMAP
+}
+
+model Agent {
+  id       String  @id @default(uuid())
+  name     String
+  slug     String  @unique
+  email    String?
+  phone    String?
+  bio      String? @db.Text
+  photoUrl String?
+
+  licenseNumber   String?
+  experienceYears Int?
+
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  seoMetadataId String?      @unique
+  seoMetadata   SeoMetadata? @relation(fields: [seoMetadataId], references: [id])
+
+  properties Property[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@map("agents")
+}
+
+model PropertyView {
+  id String @id @default(uuid())
+
+  propertyType PropertyType @map("property_type")
+  propertyId   String       @map("property_id")
+
+  visitorId   String @map("visitor_id")
+  fingerprint String @map("fingerprint")
+
+  ipHash    String  @map("ip_hash")
+  userAgent String? @map("user_agent") @db.Text
+  referrer  String? @db.Text
+  country   String?
+
+  sessionId String? @map("session_id")
+
+  viewedAt DateTime @default(now()) @map("viewed_at") @db.Timestamptz()
+
+  @@index([propertyType, propertyId])
+  @@index([visitorId])
+  @@index([fingerprint])
+  @@index([viewedAt])
+  @@index([propertyType, propertyId, visitorId])
+  @@map("property_views")
+}
+
+model PropertyViewStats {
+  id String @id @default(uuid())
+
+  propertyType PropertyType @map("property_type")
+  propertyId   String       @map("property_id")
+
+  totalViews     Int @default(0) @map("total_views")
+  uniqueViews    Int @default(0) @map("unique_views")
+  viewsToday     Int @default(0) @map("views_today")
+  viewsThisWeek  Int @default(0) @map("views_this_week")
+  viewsThisMonth Int @default(0) @map("views_this_month")
+
+  lastViewedAt DateTime? @map("last_viewed_at") @db.Timestamptz()
+
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([propertyType, propertyId])
+  @@index([propertyType])
+  @@map("property_view_stats")
+}
+
+model RedirectRule {
+  id           String       @id @default(uuid())
+  sourceUrl    String       @unique
+  targetUrl    String
+  redirectType RedirectType @default(PERMANENT)
+
+  isActive Boolean @default(true)
+
+  hitCount  Int       @default(0)
+  lastHitAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([hitCount])
+  @@map("redirect_rules")
+}
+
+enum RedirectType {
+  PERMANENT
+  TEMPORARY
+}
+
+
+
+model Admin {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  fullName  String
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@map("admins")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  adminId   String
+  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
