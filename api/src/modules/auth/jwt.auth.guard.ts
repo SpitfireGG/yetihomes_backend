@@ -6,6 +6,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.decorator';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -20,6 +21,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     ]);
 
     if (isPublic) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest<Request>();
+    if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'OPTIONS') {
       return true;
     }
 
