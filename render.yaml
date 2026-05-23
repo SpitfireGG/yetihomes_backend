@@ -8,7 +8,6 @@ services:
     region: oregon
     buildCommand: npm install && npx prisma generate && npm run build
     startCommand: npm run start:prod
-    healthCheckPath: /api
     envVars:
       - key: NODE_VERSION
         value: 22
