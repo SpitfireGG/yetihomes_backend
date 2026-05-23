@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 
 @Controller()
 export class FallbackController {
-  @All('*')
+  @All('*path')
   fallback(@Req() req: Request, @Res() res: Response) {
     res.status(404).json({
       statusCode: 404,
