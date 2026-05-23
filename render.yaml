@@ -51,7 +51,7 @@ services:
     plan: free
     region: oregon
     buildCommand: npm install && npm run build
-    startCommand: node .next/standalone/server.js
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: 22
