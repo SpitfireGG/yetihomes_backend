@@ -28,6 +28,10 @@ let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
         if (isPublic) {
             return true;
         }
+        const request = context.switchToHttp().getRequest();
+        if (request.method === 'OPTIONS') {
+            return true;
+        }
         return super.canActivate(context);
     }
     handleRequest(err, admin, info) {

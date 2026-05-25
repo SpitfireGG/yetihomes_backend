@@ -5,7 +5,9 @@ function isTokenExpired(token: string): boolean {
   try {
     const payload = token.split('.')[1];
     if (!payload) return true;
-    const decoded = JSON.parse(atob(payload));
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+    const decoded = JSON.parse(atob(padded));
     return decoded.exp * 1000 < Date.now();
   } catch {
     return true;
@@ -13,45 +15,45 @@ function isTokenExpired(token: string): boolean {
 }
 
 export function middleware(req: NextRequest) {
-    const token = req.cookies.get('accessToken');
-    const { pathname } = req.nextUrl;
+  const token = req.cookies.get('accessToken');
+  const { pathname } = req.nextUrl;
 
-    const authRoutes = new Set([
-        '/auth/login',
-        '/auth/signup',
-        '/auth/forgot-password',
-        '/auth/reset-password'
-    ]);
+  const authRoutes = new Set([
+    '/auth/login',
+    '/auth/signup',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+  ]);
 
-    if (authRoutes.has(pathname) || pathname.startsWith('/auth/')) {
-        return NextResponse.next();
-    }
-
-    if (
-        pathname.startsWith('/_next/') ||
-        pathname.startsWith('/api/') ||
-        pathname === '/favicon.ico' ||
-        pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|webp|woff2?|css|js)$/)
-    ) {
-        return NextResponse.next();
-    }
-
-    if (!token && pathname === '/') {
-        return NextResponse.next();
-    }
-
-    if (!token || isTokenExpired(token)) {
-        const response = NextResponse.redirect(new URL('/auth/login', req.url));
-        response.cookies.delete('accessToken');
-        response.cookies.delete('refreshToken');
-        return response;
-    }
-
+  if (authRoutes.has(pathname) || pathname.startsWith('/auth/')) {
     return NextResponse.next();
+  }
+
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    pathname === '/favicon.ico' ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|webp|woff2?|css|js)$/)
+  ) {
+    return NextResponse.next();
+  }
+
+  if (!token && pathname === '/') {
+    return NextResponse.next();
+  }
+
+  if (!token || isTokenExpired(token)) {
+    const loginUrl = new URL('/auth/login', req.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.delete('accessToken');
+    response.cookies.delete('refreshToken');
+    return response;
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-    matcher: [
-        '/((?!_next/static|_next/image).*)',
-    ],
+  matcher: ['/((?!_next/static|_next/image).*)'],
 };

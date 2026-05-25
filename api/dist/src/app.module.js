@@ -40,7 +40,6 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const core_1 = require("@nestjs/core");
 const jwt_auth_guard_1 = require("./modules/auth/jwt.auth.guard");
 const prisma_exception_filter_1 = require("./prisma/prisma.exception.filter");
-const fallback_controller_1 = require("./common/fallback.controller");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(logger_middleware_1.HttpLoggerMiddleware).forRoutes('*');
@@ -94,7 +93,7 @@ exports.AppModule = AppModule = __decorate([
                 useClass: prisma_exception_filter_1.PrismaExceptionFilter,
             },
         ],
-        controllers: [app_controller_1.AppController, fallback_controller_1.FallbackController],
+        controllers: [app_controller_1.AppController],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

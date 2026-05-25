@@ -4,9 +4,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService
@@ -14,17 +12,8 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
-  constructor(configService: ConfigService) {
-    const databaseUrl = configService.getOrThrow('DATABASE_URL');
-    const poolMin = configService.get<number>('DATABASE_POOL_MIN', 2);
-    const poolMax = configService.get<number>('DATABASE_POOL_MAX', 10);
-    const adapter = new PrismaPg({
-      connectionString: databaseUrl,
-      min: poolMin,
-      max: poolMax,
-    });
+  constructor() {
     super({
-      adapter,
       log: [
         { emit: 'event', level: 'warn' },
         { emit: 'event', level: 'error' },

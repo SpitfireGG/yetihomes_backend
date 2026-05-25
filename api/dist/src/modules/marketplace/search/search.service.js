@@ -296,11 +296,11 @@ let SearchService = class SearchService {
             const keyword = dto.q.trim();
             conditions.push({
                 OR: [
-                    { title: { contains: keyword, mode: 'insensitive' } },
-                    { locationText: { contains: keyword, mode: 'insensitive' } },
-                    { city: { contains: keyword, mode: 'insensitive' } },
-                    { district: { contains: keyword, mode: 'insensitive' } },
-                    { summary: { contains: keyword, mode: 'insensitive' } },
+                    { title: { contains: keyword } },
+                    { locationText: { contains: keyword } },
+                    { city: { contains: keyword } },
+                    { district: { contains: keyword } },
+                    { summary: { contains: keyword } },
                 ],
             });
         }
@@ -320,12 +320,12 @@ let SearchService = class SearchService {
         }
         if (dto.city) {
             conditions.push({
-                city: { contains: dto.city, mode: 'insensitive' },
+                city: { contains: dto.city },
             });
         }
         if (dto.district) {
             conditions.push({
-                district: { contains: dto.district, mode: 'insensitive' },
+                district: { contains: dto.district },
             });
         }
         if (dto.minArea !== undefined || dto.maxArea !== undefined) {

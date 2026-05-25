@@ -1,21 +1,22 @@
 services:
-  postgres:
-    image: postgres:16-alpine
+  mariadb:
+    image: mariadb:11
     container_name: yetihomes-db
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
-      POSTGRES_DB: ${DB_NAME:-yeti_homes}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${DB_NAME:-yeti_homes}
+      MYSQL_USER: ${DB_USER:-yeti}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - dbdata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   api:
     build:
@@ -30,7 +31,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      DATABASE_URL: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-yeti_homes}?schema=public"
+      DATABASE_URL: "mysql://${DB_USER:-yeti}:${DB_PASSWORD}@mariadb:3306/${DB_NAME:-yeti_homes}"
       CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required (comma-separated)}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -46,7 +47,7 @@ services:
     volumes:
       - uploads:/app/uploads
     depends_on:
-      postgres:
+      mariadb:
         condition: service_healthy
     command: >
       sh -c "npx prisma generate && npx prisma migrate deploy && node dist/main"
@@ -66,5 +67,5 @@ services:
       - api
 
 volumes:
-  pgdata:
+  dbdata:
   uploads:

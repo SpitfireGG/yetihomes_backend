@@ -15,7 +15,7 @@ export declare class TeamController {
             role: string;
             location: string;
             bio: string;
-            expertise: string[];
+            expertise: import("@prisma/client/runtime/client").JsonValue;
             education: string;
             seoMetadataId: string | null;
             thumbnail: string | null;
@@ -32,7 +32,7 @@ export declare class TeamController {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: import("@prisma/client/runtime/client").JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;
@@ -48,7 +48,7 @@ export declare class TeamController {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: import("@prisma/client/runtime/client").JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;
@@ -67,7 +67,7 @@ export declare class TeamController {
             role: string;
             location: string;
             bio: string;
-            expertise: string[];
+            expertise: import("@prisma/client/runtime/client").JsonValue;
             education: string;
             seoMetadataId: string | null;
             thumbnail: string | null;
@@ -84,7 +84,7 @@ export declare class TeamController {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: import("@prisma/client/runtime/client").JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;

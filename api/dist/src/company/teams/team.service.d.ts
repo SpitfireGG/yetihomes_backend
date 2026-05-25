@@ -1,4 +1,5 @@
 import { PrismaService } from "../../prisma/prisma.service";
+import { Prisma } from '@prisma/client';
 import { CreateTeamMemberDto } from './dto/create-teams.dto';
 import { UpdateTeamMemberDto } from './dto/update-teams.dto';
 import { SlugService } from "../../modules/seo/services/slug.service";
@@ -19,7 +20,7 @@ export declare class TeamService {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: Prisma.JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;
@@ -35,7 +36,7 @@ export declare class TeamService {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: Prisma.JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;
@@ -51,7 +52,7 @@ export declare class TeamService {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: Prisma.JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;
@@ -70,7 +71,7 @@ export declare class TeamService {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: Prisma.JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;
@@ -86,7 +87,7 @@ export declare class TeamService {
         role: string;
         location: string;
         bio: string;
-        expertise: string[];
+        expertise: Prisma.JsonValue;
         education: string;
         seoMetadataId: string | null;
         thumbnail: string | null;

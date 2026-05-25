@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,15 +21,14 @@ import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
 
 const Page = () => {
-  const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) router.replace('/dashboard');
-  }, [loading, isAuthenticated, router]);
+    if (!loading && isAuthenticated) window.location.href = '/dashboard';
+  }, [loading, isAuthenticated]);
 
   if (loading || isAuthenticated) return null;
 
@@ -46,7 +44,7 @@ const Page = () => {
     try {
       await authService.login(formData);
       toast.success('Welcome back');
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       toast.error(msg);
@@ -132,7 +130,7 @@ const Page = () => {
                       Password
                     </Label>
                     <Link
-                      href="/forgot-password"
+                      href="/auth/forgot-password"
                       className="text-[11px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
                     >
                       Forgot?

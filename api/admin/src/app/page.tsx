@@ -1,12 +1,12 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export default async function Page() {
-  const accessToken = (await cookies()).get('accessToken')
+  const accessToken = (await cookies()).get('accessToken');
 
   if (accessToken) {
-    redirect('/dashboard')
+    redirect('/dashboard');
   }
 
-  redirect('/auth/login')
+  redirect('/auth/login');
 }

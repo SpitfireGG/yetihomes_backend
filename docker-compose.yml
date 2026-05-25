@@ -1,21 +1,22 @@
 services:
-  postgres:
-    image: postgres:16-alpine
+  mariadb:
+    image: mariadb:11
     container_name: yetihomes-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: yeti_homes
+      MYSQL_ROOT_PASSWORD: postgres
+      MYSQL_DATABASE: yeti_homes
+      MYSQL_USER: yeti
+      MYSQL_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - dbdata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   api:
     build:
@@ -28,12 +29,12 @@ services:
     env_file:
       - ./api/.env
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/yeti_homes?schema=public"
+      DATABASE_URL: "mysql://yeti:postgres@mariadb:3306/yeti_homes"
       CORS_ORIGINS: "http://localhost:3000,http://localhost:3001"
     volumes:
       - uploads:/app/uploads
     depends_on:
-      postgres:
+      mariadb:
         condition: service_healthy
     command: >
       sh -c "npx prisma generate && npx prisma migrate deploy && node dist/main"
@@ -52,5 +53,5 @@ services:
       - api
 
 volumes:
-  pgdata:
+  dbdata:
   uploads:

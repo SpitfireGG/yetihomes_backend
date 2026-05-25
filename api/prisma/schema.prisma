@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 model CompanyInfo {
@@ -373,7 +373,7 @@ model TeamMember {
   location  String
   email     String   @unique
   bio       String
-  expertise String[]
+  expertise Json
   education String
   thumbnail String?
   image     String?
@@ -663,7 +663,7 @@ model PropertyView {
 
   sessionId String? @map("session_id")
 
-  viewedAt DateTime @default(now()) @map("viewed_at") @db.Timestamptz()
+  viewedAt DateTime @default(now()) @map("viewed_at")
 
   @@index([propertyType, propertyId])
   @@index([visitorId])
@@ -685,9 +685,9 @@ model PropertyViewStats {
   viewsThisWeek  Int @default(0) @map("views_this_week")
   viewsThisMonth Int @default(0) @map("views_this_month")
 
-  lastViewedAt DateTime? @map("last_viewed_at") @db.Timestamptz()
+  lastViewedAt DateTime? @map("last_viewed_at")
 
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([propertyType, propertyId])
   @@index([propertyType])

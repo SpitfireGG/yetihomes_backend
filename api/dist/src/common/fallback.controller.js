@@ -26,7 +26,7 @@ let FallbackController = class FallbackController {
 };
 exports.FallbackController = FallbackController;
 __decorate([
-    (0, common_1.All)('*'),
+    (0, common_1.All)('*path'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),

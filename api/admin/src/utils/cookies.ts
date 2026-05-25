@@ -2,7 +2,7 @@ const isSecure = typeof window !== 'undefined' && window.location.protocol === '
 
 export function setCookie(name: string, value: string, maxAge: number) {
   if (typeof window === 'undefined') return;
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; secure=${isSecure}; samesite=strict`;
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}${isSecure ? '; secure' : ''}; samesite=strict`;
 }
 
 export function getCookie(name: string): string | null {

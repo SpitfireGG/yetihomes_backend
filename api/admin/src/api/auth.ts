@@ -78,11 +78,23 @@ export class Auth {
       headers["Content-Type"] = "application/json";
     }
 
-    const res = await fetch(`${this.baseUrl}${path}`, {
+    let res = await fetch(`${this.baseUrl}${path}`, {
       ...options,
       headers,
       credentials: "include",
     });
+
+    if (res.status === 401 && token) {
+      const refreshed = await this.refreshTokens();
+      if (refreshed) {
+        headers["Authorization"] = `Bearer ${this.getAccessToken()}`;
+        res = await fetch(`${this.baseUrl}${path}`, {
+          ...options,
+          headers,
+          credentials: "include",
+        });
+      }
+    }
 
     const result = await res.json();
 

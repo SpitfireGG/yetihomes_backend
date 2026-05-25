@@ -11,12 +11,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  app.use(cookieParser());
+  // app.use(cookieParser());
+  //
+  // app.use(helmet());
 
-  app.use(helmet());
-
-  const corsOrigins = configService.get<string>('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3001');
-  const origins = corsOrigins.split(',').map((o: string) => o.trim()).filter(Boolean);
+  const corsOrigins = configService.get<string>(
+    'CORS_ORIGINS',
+    'http://localhost:3000,http://localhost:3001',
+  );
+  const origins = corsOrigins
+    .split(',')
+    .map((o: string) => o.trim())
+    .filter(Boolean);
 
   app.enableCors({
     origin: origins,
