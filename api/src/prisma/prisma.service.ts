@@ -5,6 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
@@ -14,12 +15,28 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
   constructor(configService: ConfigService) {
-    super({
+    const databaseUrl = configService.getOrThrow<string>('DATABASE_URL');
+    const poolMin = configService.get<number>('DATABASE_POOL_MIN', 1);
+    const poolMax = configService.get<number>('DATABASE_POOL_MAX', 1);
+
+    const isPostgres = databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://');
+
+    const opts: any = {
       log: [
         { emit: 'event', level: 'warn' },
         { emit: 'event', level: 'error' },
       ],
-    });
+    };
+
+    if (isPostgres) {
+      opts.adapter = new PrismaPg({
+        connectionString: databaseUrl,
+        min: poolMin,
+        max: poolMax,
+      });
+    }
+
+    super(opts);
 
     this.$on('error' as never, (e: any) => {
       this.logger.error(`Database error: ${e.message}`, e.stack);
