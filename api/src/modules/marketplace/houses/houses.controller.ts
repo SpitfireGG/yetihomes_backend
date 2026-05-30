@@ -14,6 +14,7 @@ import { HouseService } from './houses.service';
 import { ImageUploadInterceptor } from 'src/utils/image-upload.interceptor';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('houses')
 export class HouseController {
@@ -26,7 +27,7 @@ export class HouseController {
     @Body('data') dataString: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    if (!dataString) throw new BadRequestException(`property data is missing `);
+    if (!dataString) throw new BadRequestException('Property data is missing');
     let payload;
     try {
       payload = JSON.parse(dataString);
@@ -65,11 +66,7 @@ export class HouseController {
     };
   }
 
-  /* @Get(':id')
-  findOne(id: string) {
-    return this.houseService.findOne(id);
-  } */
-
+  @Public()
   @Get()
   findAll() {
     return this.houseService.findAll();

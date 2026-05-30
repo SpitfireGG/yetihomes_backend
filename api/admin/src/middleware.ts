@@ -7,7 +7,7 @@ function isTokenExpired(token: string): boolean {
     if (!payload) return true;
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-    const decoded = JSON.parse(atob(padded));
+    const decoded = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
     return decoded.exp * 1000 < Date.now();
   } catch {
     return true;
@@ -18,17 +18,6 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get('accessToken');
   const { pathname } = req.nextUrl;
 
-  const authRoutes = new Set([
-    '/auth/login',
-    '/auth/signup',
-    '/auth/forgot-password',
-    '/auth/reset-password',
-  ]);
-
-  if (authRoutes.has(pathname) || pathname.startsWith('/auth/')) {
-    return NextResponse.next();
-  }
-
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/api/') ||
@@ -38,11 +27,22 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  const isAuthRoute = pathname.startsWith('/auth/');
+  const hasValidToken = token && !isTokenExpired(token.value);
+
+  if (isAuthRoute && hasValidToken) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
+  if (isAuthRoute) {
+    return NextResponse.next();
+  }
+
   if (!token && pathname === '/') {
     return NextResponse.next();
   }
 
-  if (!token || isTokenExpired(token)) {
+  if (!hasValidToken) {
     const loginUrl = new URL('/auth/login', req.url);
     loginUrl.searchParams.set('redirect', pathname);
     const response = NextResponse.redirect(loginUrl);

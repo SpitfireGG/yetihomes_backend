@@ -9,6 +9,12 @@ import { CreateHouseDto } from './dto/create-houses.dto';
 import { Prisma } from '@prisma/client';
 import { UpdateHouseDto } from './dto/update-house.dto';
 
+const HOUSE_INCLUDE = {
+  houseDetails: true,
+  images: { orderBy: { sortOrder: 'asc' as const } },
+  propertyAmenities: { include: { amenity: true } },
+};
+
 @Injectable()
 export class HouseService {
   constructor(private readonly prisma: PrismaService) {}
@@ -37,28 +43,34 @@ export class HouseService {
                 }
               : undefined,
         },
-        include: { houseDetails: true, images: true, propertyAmenities: true },
+        include: HOUSE_INCLUDE,
       });
       return newHouse;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictException(
-            `a property with this slug already exists.`,
+            `A property with this slug already exists.`,
           );
         }
       }
-      throw new InternalServerErrorException(`failed to create house listing`);
+      throw new InternalServerErrorException(`Failed to create house listing`);
     }
   }
 
   async findById(id: string) {
-    const house = this.prisma.property.findUniqueOrThrow({ where: { id } });
+    const house = await this.prisma.property.findUniqueOrThrow({
+      where: { id },
+      include: HOUSE_INCLUDE,
+    });
     return house;
   }
 
   async findBySlug(slug: string) {
-    const house = this.prisma.property.findUniqueOrThrow({ where: { slug } });
+    const house = await this.prisma.property.findUniqueOrThrow({
+      where: { slug },
+      include: HOUSE_INCLUDE,
+    });
     return house;
   }
 
@@ -66,7 +78,7 @@ export class HouseService {
     const { details, images, ...propertydata } = dto;
 
     try {
-      return this.prisma.$transaction(async (tx) => {
+      return await this.prisma.$transaction(async (tx) => {
         await tx.property.update({
           where: { id },
           data: { ...propertydata },
@@ -86,19 +98,17 @@ export class HouseService {
         }
         return tx.property.findUniqueOrThrow({
           where: { id },
-          include: { houseDetails: true, images: true },
+          include: HOUSE_INCLUDE,
         });
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new ConflictException(
-            `An apartment with this slug already exists, please choose a unique title.`,
-          );
+          throw new NotFoundException(`House with id ${id} was not found.`);
         }
       }
       throw new InternalServerErrorException(
-        `Failed to update apartment listing.`,
+        `Failed to update house listing.`,
       );
     }
   }
@@ -106,24 +116,24 @@ export class HouseService {
   async findAll() {
     return this.prisma.property.findMany({
       where: { propertyType: 'HOUSE' },
-      include: { houseDetails: true, images: true },
+      include: HOUSE_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async delete(id: string) {
     try {
-      return this.prisma.property.delete({
+      return await this.prisma.property.delete({
         where: { id },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new NotFoundException(`House id was nto found -> ${id}`);
+          throw new NotFoundException(`House with id ${id} was not found.`);
         }
       }
       throw new InternalServerErrorException(
-        `failed to delete property apartment`,
+        `Failed to delete house listing.`,
       );
     }
   }

@@ -1,4 +1,3 @@
-// logger.middleware.ts
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
@@ -32,8 +31,6 @@ export class HttpLoggerMiddleware implements NestMiddleware {
 
     next();
   }
-
-  // do not expose the keys udring logging
 
   private sanitizeHeaders(headers: Record<string, any>) {
     const REDACTED = '[REDACTED]';

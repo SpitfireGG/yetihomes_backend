@@ -22,9 +22,30 @@ function clearTokens() {
   removeCookie("refreshToken");
 }
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string | null) => void)[] = [];
+
+function onRefreshed(token: string | null) {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+}
+
 async function tryRefreshToken(): Promise<boolean> {
+  if (isRefreshing) {
+    return new Promise((resolve) => {
+      refreshSubscribers.push((token) => {
+        resolve(!!token);
+      });
+    });
+  }
+
+  isRefreshing = true;
   const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
+  if (!refreshToken) {
+    isRefreshing = false;
+    onRefreshed(null);
+    return false;
+  }
 
   try {
     const res = await fetch(`${API_URL}/api/auth/refresh`, {
@@ -37,12 +58,21 @@ async function tryRefreshToken(): Promise<boolean> {
     });
 
     const result = await res.json();
-    if (!res.ok) return false;
+    if (!res.ok) {
+      isRefreshing = false;
+      onRefreshed(null);
+      return false;
+    }
 
     setAccessToken(result.data.accessToken);
     if (result.data.refreshToken) setRefreshToken(result.data.refreshToken);
+    
+    isRefreshing = false;
+    onRefreshed(result.data.accessToken);
     return true;
   } catch {
+    isRefreshing = false;
+    onRefreshed(null);
     return false;
   }
 }
@@ -56,7 +86,7 @@ export class CRUD {
     this.APIURL = `${API_URL}/${path}`;
   }
 
-  private async authFetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+  public async authFetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     const token = getAccessToken();
     const headers: Record<string, string> = {
       "x-api-key": API_KEY,
@@ -69,11 +99,13 @@ export class CRUD {
 
     let res = await fetch(input, { ...init, headers });
 
-    if (res.status === 401 && token) {
+    if (res.status === 401) {
       const refreshed = await tryRefreshToken();
       if (refreshed) {
         const newToken = getAccessToken();
-        headers["Authorization"] = `Bearer ${newToken}`;
+        if (newToken) {
+          headers["Authorization"] = `Bearer ${newToken}`;
+        }
         res = await fetch(input, { ...init, headers });
       } else {
         clearTokens();
@@ -100,7 +132,6 @@ export class CRUD {
       const data = await res.json();
       return data;
     } catch (error: any) {
-      console.error("Failed to get data", error.message);
       throw error;
     }
   };
@@ -119,7 +150,6 @@ export class CRUD {
       const data = await res.json();
       return data;
     } catch (error: any) {
-      console.error("Failed to get data by id", error.message);
       throw error;
     }
   };
@@ -156,7 +186,6 @@ export class CRUD {
 
       return result;
     } catch (error: any) {
-      console.error("Failed to create:", error.message);
       throw error;
     }
   };
@@ -179,7 +208,6 @@ export class CRUD {
       }
       return result;
     } catch (error: any) {
-      console.error("Failed to create currency:", error.message);
       throw error;
     }
   };
@@ -217,7 +245,6 @@ export class CRUD {
 
       return result;
     } catch (error: any) {
-      console.error("Failed to update:", error.message);
       throw error;
     }
   };
@@ -238,7 +265,6 @@ export class CRUD {
       }
       return result;
     } catch (error: any) {
-      console.error("Failed to update", error.message);
       throw error;
     }
   };
@@ -258,7 +284,25 @@ export class CRUD {
         throw new Error(result.message || "Something went wrong when delete");
       }
     } catch (error: any) {
-      console.error(error.message);
+      throw error;
+    }
+  };
+
+  public hardDelete = async (id: string) => {
+    try {
+      const res = await this.authFetch(`${this.APIURL}/${id}/hard`, {
+        method: "DELETE",
+        headers: {
+          "Content-type": "application/json",
+        },
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        return result.message;
+      } else {
+        throw new Error(result.message || "Something went wrong when hard deleting");
+      }
+    } catch (error: any) {
       throw error;
     }
   };
@@ -277,7 +321,24 @@ export class CRUD {
       }
       return result;
     } catch (error: any) {
-      console.error(error.message);
+      throw error;
+    }
+  };
+
+  public publish = async (id: string) => {
+    try {
+      const res = await this.authFetch(`${this.APIURL}/${id}/publish`, {
+        method: "PATCH",
+        headers: {
+          "Content-type": "application/json",
+        },
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Failed to publish property");
+      }
+      return result;
+    } catch (error: any) {
       throw error;
     }
   };
@@ -296,26 +357,6 @@ export class CRUD {
       }
       return result;
     } catch (error: any) {
-      console.error(error.message);
-      throw error;
-    }
-  };
-
-  public publish = async (id: string) => {
-    try {
-      const res = await this.authFetch(`${this.APIURL}/${id}/publish`, {
-        method: "PATCH",
-        headers: {
-          "Content-type": "application/json",
-        },
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        throw new Error(result.message || "Failed to publish");
-      }
-      return result;
-    } catch (error: any) {
-      console.error(error.message);
       throw error;
     }
   };
@@ -334,7 +375,6 @@ export class CRUD {
       }
       return result;
     } catch (error: any) {
-      console.error(error.message);
       throw error;
     }
   };
@@ -357,30 +397,6 @@ export class CRUD {
         );
       }
     } catch (error: any) {
-      console.error(error.message);
-      throw error;
-    }
-  };
-
-  public getDataBySlug = async (slug: string) => {
-    try {
-      const res = await this.authFetch(`${this.APIURL}/slug/${slug}`, {
-        method: "GET",
-        headers: {
-          "Content-type": "application/json",
-        },
-        cache: "no-cache" as any,
-      });
-      const result = await res.json();
-      if (res.ok && result.success) {
-        return result;
-      } else {
-        throw new Error(
-          result.message || "Something went wrong get data by id",
-        );
-      }
-    } catch (error: any) {
-      console.error(error.message);
       throw error;
     }
   };

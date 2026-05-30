@@ -1,24 +1,21 @@
-declare type AffiliationTranslationDto = {
-    language_id: string;
-    title: string;
-    description?: string;
+export interface Affiliation {
+  id: string;
+  name: string;
+  logoUrl: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export declare type CreateAffiliationDto = {
-    link: string;
-    image: File | null | string;
-    translations: AffiliationTranslationDto[];
+export interface AffiliationFormData {
+  name: string;
+  logoUrl: string;
+  isActive: boolean;
+  displayOrder: number;
 }
 
-export declare type CompanyAffiliationApiResponse = {
-    id: string;
-    link: string;
-    image_path: null | string;
-    translations: AffiliationTranslationDto[];
-}
-
-
-export type CompanyAffiliationTranslationDataForm = {
-    link: string;
-    translations: AffiliationTranslationDto[]
+export interface CompanyAffiliationTranslationDataForm {
+  link?: string;
+  translations?: any[];
 }

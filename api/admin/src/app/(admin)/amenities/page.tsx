@@ -47,7 +47,6 @@ export default function AmenitiesPage() {
       setError(null);
     } catch (err) {
       setError('Failed to fetch amenities');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }

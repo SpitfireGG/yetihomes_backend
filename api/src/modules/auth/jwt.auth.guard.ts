@@ -32,7 +32,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, admin: any, info: any) {
+  handleRequest(err: any, admin: any, info: any, context: ExecutionContext) {
     if (err || !admin) {
       if (info?.name === 'TokenExpiredError') {
         throw new UnauthorizedException('Access token has expired');
@@ -40,7 +40,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       if (info?.name === 'JsonWebTokenError') {
         throw new UnauthorizedException('Invalid access token');
       }
-      throw err || new UnauthorizedException('Authentication required');
+      throw err || new UnauthorizedException(`Authentication required. Error: ${info?.message || info}`);
     }
     return admin;
   }

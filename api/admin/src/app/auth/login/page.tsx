@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
 
@@ -20,15 +21,17 @@ import { authService } from '@/api/auth';
 import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
 
-const Page = () => {
+const LoginPage = () => {
   const { isAuthenticated, loading } = useAuth();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) window.location.href = '/dashboard';
-  }, [loading, isAuthenticated]);
+    if (!loading && isAuthenticated) window.location.href = redirectTo;
+  }, [loading, isAuthenticated, redirectTo]);
 
   if (loading || isAuthenticated) return null;
 
@@ -44,7 +47,7 @@ const Page = () => {
     try {
       await authService.login(formData);
       toast.success('Welcome back');
-      window.location.href = '/dashboard';
+      window.location.href = redirectTo;
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       toast.error(msg);
@@ -198,9 +201,16 @@ const Page = () => {
           </Card>
 
           <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
-            <span className="h-1 w-1 rounded-full bg-emerald-500" />
-            <span>Encrypted connection</span>
+            <span>New to Yeti?</span>
             <span className="opacity-30">·</span>
+            <Link
+              href="/auth/signup"
+              className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              Create an account
+            </Link>
+            <span className="opacity-30">·</span>
+            <span className="h-1 w-1 rounded-full bg-emerald-500" />
             <Link
               href="/support"
               className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
@@ -213,5 +223,11 @@ const Page = () => {
     </main>
   );
 };
+
+const Page = () => (
+  <Suspense>
+    <LoginPage />
+  </Suspense>
+);
 
 export default Page;

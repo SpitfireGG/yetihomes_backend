@@ -18,6 +18,7 @@ import { validateOrReject } from 'class-validator';
 import { ReviewsService } from './review.service';
 import { CreateReviewDto } from './dto/create-reviews.dto';
 import { UpdateReviewDto } from './dto/update-reviews.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('reviews')
 export class ReviewsController {
@@ -67,11 +68,13 @@ export class ReviewsController {
     };
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.reviewsService.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.reviewsService.findById(id);

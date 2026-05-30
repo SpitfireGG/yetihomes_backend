@@ -8,11 +8,13 @@ import {
 } from '@nestjs/common';
 import { ContactService } from './support.service';
 import { CreateTicketDto } from './dto/create-support.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('contact')
 export class ContactController {
   constructor(private readonly contactService: ContactService) {}
 
+  @Public()
   @Post('ticket')
   @HttpCode(HttpStatus.CREATED)
   async createTicket(@Body() createTicketDto: CreateTicketDto) {

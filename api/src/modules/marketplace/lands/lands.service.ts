@@ -9,6 +9,12 @@ import { UpdateLandDto } from './dto/update-land.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
+const LAND_INCLUDE = {
+  landDetails: true,
+  images: { orderBy: { sortOrder: 'asc' as const } },
+  propertyAmenities: { include: { amenity: true } },
+};
+
 @Injectable()
 export class LandService {
   constructor(private readonly prisma: PrismaService) {}
@@ -37,76 +43,81 @@ export class LandService {
                 }
               : undefined,
         },
-        include: { landDetails: true, images: true, propertyAmenities: true },
+        include: LAND_INCLUDE,
       });
       return newLand;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictException(
-            `a property with this slug already exists.`,
+            `A property with this slug already exists.`,
           );
         }
       }
-      throw new InternalServerErrorException(`failed to create land listing`);
+      throw new InternalServerErrorException(`Failed to create land listing`);
     }
   }
 
   async findAll() {
     return this.prisma.property.findMany({
       where: { propertyType: 'LAND' },
-      include: { landDetails: true, images: true },
+      include: LAND_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
   }
+
   async findOne(id: string) {
-    const Land = await this.prisma.property.findUnique({
+    const land = await this.prisma.property.findUnique({
       where: { id },
-      include: { landDetails: true, images: true },
+      include: LAND_INCLUDE,
     });
-    if (!Land)
+    if (!land)
       throw new NotFoundException(
         `Requested land id was not found #id -> ${id}`,
       );
 
-    return Land;
+    return land;
   }
 
   async update(id: string, dto: UpdateLandDto) {
     await this.findOne(id);
     const { details, images, ...propertyData } = dto;
     try {
-      return await this.prisma.property.update({
-        where: { id },
-        data: {
-          ...propertyData,
-          ...(details && {
-            landDetails: {
-              upsert: {
-                create: details,
-                update: details,
-              },
-            },
-          }),
-          ...(images &&
-            images.length > 0 && {
-              images: {
-                create: images,
-                deleteMany: {},
-              },
-            }),
-        },
-        include: { landDetails: true, images: true },
+      return await this.prisma.$transaction(async (tx) => {
+        await tx.property.update({
+          where: { id },
+          data: { ...propertyData },
+        });
+
+        if (details) {
+          await tx.landDetails.upsert({
+            where: { propertyId: id },
+            create: { propertyId: id, ...details },
+            update: details,
+          });
+        }
+
+        if (images && images.length > 0) {
+          await tx.propertyImage.deleteMany({ where: { propertyId: id } });
+          await tx.propertyImage.createMany({
+            data: images.map((img) => ({ ...img, propertyId: id })),
+          });
+        }
+
+        return tx.property.findUniqueOrThrow({
+          where: { id },
+          include: LAND_INCLUDE,
+        });
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictException(
-            `A property with the slug already exists, please choose an unique title`,
+            `A property with the slug already exists, please choose a unique title`,
           );
         }
       }
-      throw new InternalServerErrorException(`failed to update land listing`);
+      throw new InternalServerErrorException(`Failed to update land listing`);
     }
   }
 

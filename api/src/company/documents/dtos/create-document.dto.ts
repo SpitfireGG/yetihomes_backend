@@ -10,8 +10,8 @@ import { LegalDocType } from '@prisma/client';
 
 export class CreateLegalDocumentDto {
   @IsEnum(LegalDocType)
-  @IsNotEmpty()
-  type: LegalDocType;
+  @IsOptional()
+  type?: LegalDocType;
 
   @IsString()
   @IsNotEmpty()

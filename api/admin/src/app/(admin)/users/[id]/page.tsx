@@ -17,6 +17,7 @@ import { CRUD } from "@/api/crud"
 import { toast } from "sonner"
 import { authService } from "@/api/auth"
 import { useAuth } from "@/hooks/use-auth"
+import { API_URL, API_KEY } from "@/utils/main"
 
 type User = {
     id: string
@@ -132,11 +133,11 @@ const EditUserPage = () => {
                 .find((row) => row.startsWith("accessToken="))
                 ?.split("=")[1];
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/admin-change-password`, {
+            const res = await fetch(`${API_URL}/api/auth/admin-change-password`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "x-api-key": "some",
+                    "x-api-key": API_KEY,
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({

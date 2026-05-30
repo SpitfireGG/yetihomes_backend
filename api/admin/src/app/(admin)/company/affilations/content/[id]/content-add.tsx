@@ -31,7 +31,6 @@ type Props = {
 }
 
 const AddContentForm = ({ destinationId, tripId }: Props) => {
-    console.log(destinationId, "-", tripId)
     const destinationCrud = new CRUD(`api/company/affilations`)
     const { data } = useCompanyGetAffilationsById(destinationId)
     const destination = data?.data
@@ -44,17 +43,11 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
         translations: [],
     })
 
-    /* --------------------------------------------
-       Find English language
-    --------------------------------------------- */
     const englishLanguage = useMemo(
         () => languages.find(l => l.code === 'en'),
         [languages]
     )
 
-    /* --------------------------------------------
-       Load destination data
-    --------------------------------------------- */
     useEffect(() => {
         if (!destination) return
 
@@ -64,9 +57,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
         })
     }, [destination])
 
-    /* --------------------------------------------
-       Helpers
-    --------------------------------------------- */
     const updateTranslation = (
         index: number,
         field: 'language_id' | 'title' | 'description',
@@ -86,9 +76,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
         }))
     }
 
-    /* --------------------------------------------
-       Per-row available languages (NO DUPLICATES)
-    --------------------------------------------- */
     const getAvailableLanguages = (currentLanguageId?: string) => {
         return languages.filter(l =>
             l.code !== 'en' &&
@@ -101,9 +88,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
         )
     }
 
-    /* --------------------------------------------
-       Add translation (only if languages remain)
-    --------------------------------------------- */
     const addTranslation = () => {
         const remainingLanguages = languages.filter(
             l =>
@@ -128,9 +112,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
         }))
     }
 
-    /* --------------------------------------------
-       Submit
-    --------------------------------------------- */
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         try {
@@ -155,7 +136,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
 
             <form onSubmit={handleSubmit} className="py-4 space-y-6">
 
-                {/* TRANSLATIONS */}
                 {formData.translations.map((translation, index) => {
                     const isEnglish =
                         translation.language_id === englishLanguage?.id
@@ -168,7 +148,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
                             key={index}
                             className="border p-4 rounded space-y-4"
                         >
-                            {/* Header */}
                             <div className="flex justify-between items-center">
                                 <h3 className="font-semibold">
                                     {isEnglish ? 'English' : 'Translation'}
@@ -186,7 +165,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
                                 )}
                             </div>
 
-                            {/* Title */}
                             <TextInput
                                 label="Title"
                                 value={translation.title}
@@ -199,7 +177,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
                                 }
                             />
 
-                            {/* Language */}
                             <Label>Language</Label>
                             <Select
                                 value={translation.language_id}
@@ -239,13 +216,11 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
                                 </SelectContent>
                             </Select>
 
-                            {/* Content */}
                             <TextAreaInput value={translation.description} onChange={(e) => updateTranslation(index, 'description', e.target.value)} label='Description' name='description' />
                         </div>
                     )
                 })}
 
-                {/* ADD TRANSLATION */}
                 <Button
                     type="button"
                     variant="outline"
@@ -263,7 +238,6 @@ const AddContentForm = ({ destinationId, tripId }: Props) => {
                     + Add Translation
                 </Button>
 
-                {/* SUBMIT */}
                 <div className="text-right">
                     <Button type="submit">
                         Update

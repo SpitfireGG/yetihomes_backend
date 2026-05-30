@@ -24,9 +24,14 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
   },
+  output: 'standalone',
   reactCompiler: true,
   poweredByHeader: false,
+  compress: true,
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

@@ -2,6 +2,15 @@ import Image from 'next/image'
 import { API_URL } from '@/utils/main'
 import { cn } from '@/lib/utils'
 
+export const getImageUrl = (src: string | null | undefined): string => {
+  if (!src) return '/placeholder.png'
+  if (src.startsWith('http')) return src
+  if (src.startsWith('/uploads')) return `${API_URL}${src}`
+  const normalizedSrc = src.startsWith('/') ? src : `/${src}`
+  if (normalizedSrc.startsWith('/uploads')) return `${API_URL}${normalizedSrc}`
+  return `${API_URL}/uploads/${src}`
+}
+
 interface OptimizedImageProps {
   src: string | null | undefined
   alt: string
@@ -11,15 +20,6 @@ interface OptimizedImageProps {
   height?: number
   priority?: boolean
   onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void
-}
-
-const getImageUrl = (src: string | null | undefined): string => {
-  if (!src) return '/placeholder.png'
-  if (src.startsWith('http')) return src
-  if (src.startsWith('/uploads')) return `${API_URL}${src}`
-  const normalizedSrc = src.startsWith('/') ? src : `/${src}`
-  if (normalizedSrc.startsWith('/uploads')) return `${API_URL}${normalizedSrc}`
-  return `${API_URL}/uploads/${src}`
 }
 
 export function OptimizedImage({

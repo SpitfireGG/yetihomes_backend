@@ -10,6 +10,7 @@ import {
 import { FaqService } from './faq.service';
 import { UpdateFaqsDto } from './dtos/update-faqs.dto';
 import { CreateFaqDto } from './dtos/create-faqs.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('faqs')
 export class FaqsController {
@@ -20,11 +21,13 @@ export class FaqsController {
     return this.faqService.create(createFaqDto);
   }
 
+  @Public()
   @Get()
   async findAll() {
     return this.faqService.findAll();
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.faqService.findOne(id);

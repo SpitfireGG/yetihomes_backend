@@ -1,20 +1,20 @@
-export type TripReviewFormData = {
-    image: File | null | string
-    rating: number;
-    reviewer: string;
-    title: string;
-    content: string
+export interface Review {
+  id: string;
+  name: string;
+  role: string;
+  text: string;
+  rating: number;
+  isFeatured: boolean;
+  image: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-
-export type TripReviewApiResponse = {
-    id: string,
-    trip_id: string,
-    rating: number,
-    reviewer: string,
-    title: string,
-    content: string,
-    image_path: null | string,
-    approved: boolean,
-    created_at: Date
+export interface ReviewFormData {
+  name: string;
+  role: string;
+  text: string;
+  rating: number;
+  isFeatured: boolean;
+  images?: File | string | null;
 }

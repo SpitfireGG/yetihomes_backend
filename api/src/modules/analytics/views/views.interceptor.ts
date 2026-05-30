@@ -36,9 +36,7 @@ export class PropertyViewInterceptor implements NestInterceptor {
         const propertyType = propertyData.propertyType;
         if (!propertyId || !propertyType) return;
 
-        this.views.recordView(propertyType, propertyId, req).catch((err) => {
-          console.error("view tracking failed:", err);
-        });
+        this.views.recordView(propertyType, propertyId, req).catch(() => {});
       }),
     );
   }

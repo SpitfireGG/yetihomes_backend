@@ -29,7 +29,7 @@ export class PrismaService
     try {
       await this.$connect();
       this.logger.log('Database connected successfully');
-      const result = await this.$queryRaw`SELECT 1`;
+      await this.$queryRaw`SELECT 1`;
       this.logger.verbose('Database health check passed');
     } catch (error) {
       this.logger.error('Database connection failed', error);

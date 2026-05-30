@@ -3,6 +3,7 @@ yt_frontend
 
 # compiled output
 /dist
+api/dist/
 
 node_modules/
 /build

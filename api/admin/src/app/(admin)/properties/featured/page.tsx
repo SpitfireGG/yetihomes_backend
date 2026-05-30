@@ -22,14 +22,9 @@ import { CRUD } from '@/api/crud';
 import TableSkeleton from '@/components/common/table-skeleton';
 import { cn } from '@/lib/utils';
 import { API_URL } from '@/utils/main';
+import { getImageUrl } from '@/components/common/optimized-image';
 
 const propertyCrud = new CRUD('api/properties');
-
-const getImageUrl = (url: string) => {
-  if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return `${API_URL}${url}`;
-};
 
 const statusStyles: Record<string, string> = {
   DRAFT: 'bg-muted text-muted-foreground border-transparent',

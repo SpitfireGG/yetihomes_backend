@@ -18,8 +18,9 @@ import {
   CreateAgentDto,
   CreateRedirectRuleDto,
 } from '../dto/seo-metadata.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
-@Controller('api/seo')
+@Controller('seo')
 export class SeoController {
   constructor(
     private readonly seoService: SeoService,
@@ -37,11 +38,13 @@ export class SeoController {
     return this.seoService.createLocationPage({ ...dto, slug: uniqueSlug });
   }
 
+  @Public()
   @Get('location-pages')
   async getLocationPages(@Query('active') active?: string) {
     return this.seoService.getLocationPages(active === 'true');
   }
 
+  @Public()
   @Get('location-pages/:slug')
   async getLocationPage(@Param('slug') slug: string) {
     const page = await this.seoService.getLocationPageBySlug(slug);
@@ -75,11 +78,13 @@ export class SeoController {
     return this.seoService.createPropertyTypePage({ ...dto, slug: uniqueSlug });
   }
 
+  @Public()
   @Get('property-type-pages')
   async getPropertyTypePages(@Query('active') active?: string) {
     return this.seoService.getPropertyTypePages(active === 'true');
   }
 
+  @Public()
   @Get('property-type-pages/:slug')
   async getPropertyTypePage(@Param('slug') slug: string) {
     const page = await this.seoService.getPropertyTypePageBySlug(slug);
@@ -95,11 +100,13 @@ export class SeoController {
     return this.seoService.createAgent({ ...dto, slug: uniqueSlug });
   }
 
+  @Public()
   @Get('agents')
   async getAgents(@Query('active') active?: string) {
     return this.seoService.getAgents(active === 'true');
   }
 
+  @Public()
   @Get('agents/:slug')
   async getAgent(@Param('slug') slug: string) {
     const agent = await this.seoService.getAgentBySlug(slug);
@@ -112,6 +119,7 @@ export class SeoController {
     return this.seoService.createRedirect(dto);
   }
 
+  @Public()
   @Get('redirects')
   async getRedirects() {
     return this.seoService.getRedirects();

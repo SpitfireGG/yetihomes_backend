@@ -15,7 +15,16 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ImageUploadInterceptor } from 'src/utils/image-upload.interceptor';
 import { PropertyViewInterceptor } from 'src/modules/analytics/views/views.interceptor';
+import { Public } from 'src/modules/auth/public.decorator';
 import 'multer';
+
+function toTitleCase(str: string | null | undefined): string | null {
+  if (!str || typeof str !== 'string') return str ?? null;
+  return str
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 const PROPERTY_SELECT = {
   id: true,
@@ -79,6 +88,7 @@ const FULL_INCLUDE_WITH_AMENITIES = {
 export class PropertiesController {
   constructor(private readonly prisma: PrismaService) {}
 
+  @Public()
   @Get()
   async findAll() {
     const properties = await this.prisma.property.findMany({
@@ -98,6 +108,7 @@ export class PropertiesController {
     return { data: properties };
   }
 
+  @Public()
   @Get(':id')
   @UseInterceptors(PropertyViewInterceptor)
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
@@ -190,8 +201,8 @@ export class PropertiesController {
         badgeLabel,
         badgeTone,
         locationText,
-        district,
-        city,
+        district: toTitleCase(district),
+        city: toTitleCase(city),
         latitude: latitude ? Number(latitude) : null,
         longitude: longitude ? Number(longitude) : null,
         areaValue: areaValue ? Number(areaValue) : null,
@@ -360,8 +371,8 @@ export class PropertiesController {
           badgeLabel,
           badgeTone,
           locationText,
-          district,
-          city,
+          district: toTitleCase(district),
+          city: toTitleCase(city),
           latitude,
           longitude,
           areaValue,
@@ -404,6 +415,22 @@ export class PropertiesController {
       data: { status: 'ARCHIVED' },
     });
     return { success: true, message: 'Property archived successfully' };
+  }
+
+  @Delete(':id/hard')
+  async hardRemove(@Param('id', ParseUUIDPipe) id: string) {
+    const exists = await this.prisma.property.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!exists) {
+      throw new NotFoundException('Property not found');
+    }
+
+    await this.prisma.property.delete({
+      where: { id },
+    });
+    return { success: true, message: 'Property deleted permanently' };
   }
 
   @Patch(':id/mark-sold')

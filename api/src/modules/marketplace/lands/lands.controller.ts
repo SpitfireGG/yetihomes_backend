@@ -18,6 +18,7 @@ import { ImageUploadInterceptor } from 'src/utils/image-upload.interceptor';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { LandService } from './lands.service';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('lands')
 export class LandController {
@@ -76,11 +77,13 @@ export class LandController {
     };
   }
 
+  @Public()
   @Get()
   async findAll() {
     return this.landService.findAll();
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.landService.findOne(id);

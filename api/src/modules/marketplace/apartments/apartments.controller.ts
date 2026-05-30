@@ -18,6 +18,7 @@ import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { ImageUploadInterceptor } from 'src/utils/image-upload.interceptor';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('apartments')
 export class ApartmentsController {
@@ -77,11 +78,13 @@ export class ApartmentsController {
     };
   }
 
+  @Public()
   @Get()
   async findAll() {
     return this.apartmentsService.findAll();
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.apartmentsService.findOne(id);

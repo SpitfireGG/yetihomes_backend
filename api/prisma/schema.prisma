@@ -1,18 +1,20 @@
 generator client {
   provider   = "prisma-client-js"
   engineType = "library"
+  binaryTargets = ["debian-openssl-3.0.x", "linux-nixos"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model CompanyInfo {
   id           String   @id @default(uuid())
   name         String
-  description  String
-  mission      String?
-  vision       String?
+  description  String   @db.Text
+  mission      String?  @db.Text
+  vision       String?  @db.Text
   contactEmail String?
   phone        String?
   address      String?
@@ -126,8 +128,8 @@ model Property {
   id           String         @id @default(uuid())
   title        String
   slug         String         @unique
-  summary      String?
-  description  String
+  summary      String?  @db.Text
+  description  String   @db.Text
   propertyType PropertyType
   listingType  ListingType
   priceAmount  Decimal        @db.Decimal(14, 2)
@@ -145,9 +147,9 @@ model Property {
   areaValue    Decimal?       @db.Decimal(12, 2)
   areaUnit     AreaUnit?
 
-  titleStatus       String? @default("Clear Lal Purja")
-  waterAvailability String?
-  electricity       String?
+  titleStatus       String? @default("Clear Lal Purja") @db.Text
+  waterAvailability String? @db.Text
+  electricity       String? @db.Text
 
   isVerified      Boolean @default(false)
   isOwnerApproved Boolean @default(false)
@@ -227,8 +229,8 @@ model LandDetails {
   roadAccessFeet  Decimal?         @db.Decimal(8, 2)
   frontageFeet    Decimal?         @db.Decimal(8, 2)
   facingDirection FacingDirection?
-  plotShape       String?
-  zoningType      String?
+  plotShape       String?          @db.Text
+  zoningType      String?          @db.Text
   isCornerPlot    Boolean          @default(false)
 
   @@index([propertyId])
@@ -284,7 +286,7 @@ model Inquiry {
   fullName   String
   email      String?
   phone      String?
-  message    String
+  message    String        @db.Text
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
@@ -370,12 +372,12 @@ model TeamMember {
   id        String   @id @default(cuid())
   name      String
   slug      String   @unique
-  role      String
+  role      String   @db.Text
   location  String
   email     String   @unique
-  bio       String
-  expertise String[]
-  education String
+  bio       String   @db.Text
+  expertise Json
+  education String   @db.Text
   thumbnail String?
   image     String?
   createdAt DateTime @default(now())
@@ -664,7 +666,7 @@ model PropertyView {
 
   sessionId String? @map("session_id")
 
-  viewedAt DateTime @default(now()) @map("viewed_at") @db.Timestamptz()
+  viewedAt DateTime @default(now()) @map("viewed_at")
 
   @@index([propertyType, propertyId])
   @@index([visitorId])
@@ -686,9 +688,9 @@ model PropertyViewStats {
   viewsThisWeek  Int @default(0) @map("views_this_week")
   viewsThisMonth Int @default(0) @map("views_this_month")
 
-  lastViewedAt DateTime? @map("last_viewed_at") @db.Timestamptz()
+  lastViewedAt DateTime? @map("last_viewed_at")
 
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([propertyType, propertyId])
   @@index([propertyType])
@@ -752,4 +754,47 @@ model RefreshToken {
   @@index([tokenHash])
   @@index([expiresAt])
   @@map("refresh_tokens")
+}
+
+model ContactInfo {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  email     String
+  phone     String   @db.VarChar(20)
+  whatsapp  String   @db.VarChar(20)
+  address   String   @db.Text
+  map       String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_info")
+}
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  TWITTER
+  LINKEDIN
+  YOUTUBE
+  PINTEREST
+  TIKTOK
+  TRIPADVISOR
+  GOOGLE_BUSINESS
+  WHATSAPP
+  TELEGRAM
+  WEBSITE
+
+  @@map("social_platform")
+}
+
+model SocialMedia {
+  id        String         @id @default(uuid())
+  platform  SocialPlatform
+  url       String         @db.Text
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("social_media")
 }

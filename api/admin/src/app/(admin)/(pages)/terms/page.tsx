@@ -53,7 +53,6 @@ const Page = () => {
                     <CardTitle>{termsData?.title ?? "—"}</CardTitle>
 
                     <CardDescription hidden>
-                        {/* optional description */}
                     </CardDescription>
 
                     <CardAction>
@@ -70,7 +69,6 @@ const Page = () => {
                                         Edit
                                     </Link>
                                 </DropdownMenuItem>
-                                {/* future actions here */}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </CardAction>

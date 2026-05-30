@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { ImageUploadInterceptor } from 'src/utils/image-upload.interceptor';
+import { Public } from 'src/modules/auth/public.decorator';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { CreateTeamMemberDto } from './dto/create-teams.dto';
@@ -25,7 +26,7 @@ export class TeamController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(ImageUploadInterceptor('images', 'teams', 2, 3))
+  @UseInterceptors(ImageUploadInterceptor('image', 'teams', 2, 3))
   async create(
     @Body('data') dataString: string,
     @UploadedFiles() files: Express.Multer.File[],
@@ -70,18 +71,20 @@ export class TeamController {
     };
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.teamService.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.teamService.findById(id);
   }
 
   @Patch(':id')
-  @UseInterceptors(ImageUploadInterceptor('images', 'teams', 2, 3))
+  @UseInterceptors(ImageUploadInterceptor('image', 'teams', 2, 3))
   async update(
     @Param('id') id: string,
     @Body('data') dataString: string,

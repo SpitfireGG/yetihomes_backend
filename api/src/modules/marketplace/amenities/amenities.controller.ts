@@ -9,11 +9,13 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('amenities')
 export class AmenitiesController {
   constructor(private readonly prisma: PrismaService) {}
 
+  @Public()
   @Get()
   async findAll() {
     const amenities = await this.prisma.amenity.findMany({
@@ -22,6 +24,7 @@ export class AmenitiesController {
     return { success: true, data: amenities };
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const amenity = await this.prisma.amenity.findUnique({

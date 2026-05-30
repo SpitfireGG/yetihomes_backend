@@ -25,66 +25,60 @@ export class ViewsService {
     const referrer = (req.headers.referer ?? req.headers.referrer ?? null) as string | null;
     const country = (req.headers["cf-ipcountry"] ?? null) as string | null;
 
-    const recentView = await this.prisma.propertyView.findFirst({
-      where: {
-        propertyType,
-        propertyId,
-        visitorId,
-        viewedAt: { gte: new Date(Date.now() - this.DEDUP_WINDOW_MS) },
-      },
-      select: { id: true },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      const recentView = await tx.propertyView.findFirst({
+        where: {
+          propertyType,
+          propertyId,
+          visitorId,
+          viewedAt: { gte: new Date(Date.now() - this.DEDUP_WINDOW_MS) },
+        },
+        select: { id: true },
+      });
 
-    if (recentView) return;
+      if (recentView) return;
 
-    await this.prisma.propertyView.create({
-      data: {
-        propertyType,
-        propertyId,
-        visitorId,
-        fingerprint,
-        ipHash,
-        userAgent,
-        referrer,
-        country,
-      },
-    });
+      await tx.propertyView.create({
+        data: {
+          propertyType,
+          propertyId,
+          visitorId,
+          fingerprint,
+          ipHash,
+          userAgent,
+          referrer,
+          country,
+        },
+      });
 
-    await this.updateStats(propertyType, propertyId, visitorId);
-  }
+      const viewCount = await tx.propertyView.count({
+        where: { propertyType, propertyId, visitorId },
+      });
+      const isUnique = viewCount === 1;
 
-  private async updateStats(
-    propertyType: PropertyType,
-    propertyId: string,
-    visitorId: string,
-  ): Promise<void> {
-    const previousViews = await this.prisma.propertyView.count({
-      where: { propertyType, propertyId, visitorId },
-    });
-    const isUnique = previousViews === 1;
-
-    await this.prisma.propertyViewStats.upsert({
-      where: {
-        propertyType_propertyId: { propertyType, propertyId },
-      },
-      create: {
-        propertyType,
-        propertyId,
-        totalViews: 1,
-        uniqueViews: 1,
-        viewsToday: 1,
-        viewsThisWeek: 1,
-        viewsThisMonth: 1,
-        lastViewedAt: new Date(),
-      },
-      update: {
-        totalViews: { increment: 1 },
-        uniqueViews: isUnique ? { increment: 1 } : undefined,
-        viewsToday: { increment: 1 },
-        viewsThisWeek: { increment: 1 },
-        viewsThisMonth: { increment: 1 },
-        lastViewedAt: new Date(),
-      },
+      await tx.propertyViewStats.upsert({
+        where: {
+          propertyType_propertyId: { propertyType, propertyId },
+        },
+        create: {
+          propertyType,
+          propertyId,
+          totalViews: 1,
+          uniqueViews: 1,
+          viewsToday: 1,
+          viewsThisWeek: 1,
+          viewsThisMonth: 1,
+          lastViewedAt: new Date(),
+        },
+        update: {
+          totalViews: { increment: 1 },
+          uniqueViews: isUnique ? { increment: 1 } : undefined,
+          viewsToday: { increment: 1 },
+          viewsThisWeek: { increment: 1 },
+          viewsThisMonth: { increment: 1 },
+          lastViewedAt: new Date(),
+        },
+      });
     });
   }
 

@@ -22,11 +22,25 @@ export class LegalDocumentService {
       );
     }
 
-    return this.prisma.legalDocument.create({ data: dto });
+    return this.prisma.legalDocument.create({ data: dto as any });
   }
 
   async findAll() {
-    return this.prisma.legalDocument.findMany();
+    return this.prisma.legalDocument.findMany({
+      orderBy: { type: 'asc' },
+    });
+  }
+
+  async findOne(id: string) {
+    const document = await this.prisma.legalDocument.findUnique({
+      where: { id },
+    });
+
+    if (!document) {
+      throw new NotFoundException('Document not found.');
+    }
+
+    return document;
   }
 
   async findByType(type: LegalDocType) {

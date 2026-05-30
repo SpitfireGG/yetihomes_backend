@@ -9,6 +9,12 @@ import { Prisma, PropertyType } from '@prisma/client';
 import { CreateApartmentDtos } from './dto/create-apartment.dto';
 import { UpdateApartmentDto } from './dto/update-apartment.dto';
 
+const APARTMENT_INCLUDE = {
+  apartmentDetails: true,
+  images: { orderBy: { sortOrder: 'asc' as const } },
+  propertyAmenities: { include: { amenity: true } },
+};
+
 @Injectable()
 export class ApartmentsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -37,7 +43,7 @@ export class ApartmentsService {
                 }
               : undefined,
         },
-        include: { apartmentDetails: true, images: true, propertyAmenities: true },
+        include: APARTMENT_INCLUDE,
       });
       return newApartment;
     } catch (error) {
@@ -57,7 +63,7 @@ export class ApartmentsService {
   async findAll() {
     return this.prisma.property.findMany({
       where: { propertyType: PropertyType.APARTMENT },
-      include: { apartmentDetails: true, images: true },
+      include: APARTMENT_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -65,7 +71,7 @@ export class ApartmentsService {
   async findOne(id: string) {
     const apartment = await this.prisma.property.findUnique({
       where: { id },
-      include: { apartmentDetails: true, images: true },
+      include: APARTMENT_INCLUDE,
     });
 
     if (!apartment || apartment.propertyType !== PropertyType.APARTMENT) {
@@ -84,7 +90,7 @@ export class ApartmentsService {
 
     try {
       return await this.prisma.$transaction(async (tx) => {
-        const property = await tx.property.update({
+        await tx.property.update({
           where: { id },
           data: { ...propertyData },
         });
@@ -104,16 +110,16 @@ export class ApartmentsService {
           });
         }
 
-        return tx.property.findUnique({
+        return tx.property.findUniqueOrThrow({
           where: { id },
-          include: { apartmentDetails: true, images: true },
+          include: APARTMENT_INCLUDE,
         });
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new ConflictException(
-            `An apartment with this slug already exists, please choose a unique title.`,
+          throw new NotFoundException(
+            `Apartment with id ${id} was not found.`,
           );
         }
       }
@@ -125,17 +131,17 @@ export class ApartmentsService {
 
   async delete(id: string) {
     try {
-      return this.prisma.property.delete({
+      return await this.prisma.property.delete({
         where: { id },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new NotFoundException(`Apartment id was nto found -> ${id}`);
+          throw new NotFoundException(`Apartment with id ${id} was not found.`);
         }
       }
       throw new InternalServerErrorException(
-        `failed to delete property apartment`,
+        `Failed to delete apartment listing.`,
       );
     }
   }

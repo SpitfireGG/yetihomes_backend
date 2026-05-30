@@ -19,6 +19,7 @@ import { TeamModule } from './company/teams/team.module';
 import { ReviewsModule } from './company/reviews/review.module';
 import { BlogModule } from './company/blog/blog.module';
 import { ContactModule } from './company/support/support.module';
+import { ContactInfoModule } from './company/contact-info/contact-info.module';
 import { SearchModule } from './modules/marketplace/search/search.module';
 import { PropertiesModule } from './modules/marketplace/properties/properties.module';
 import { AmenitiesModule } from './modules/marketplace/amenities/amenities.module';
@@ -35,7 +36,7 @@ import { PrismaExceptionFilter } from './prisma/prisma.exception.filter';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
@@ -57,6 +58,7 @@ import { PrismaExceptionFilter } from './prisma/prisma.exception.filter';
     BlogModule,
     AffiliationsModule,
     ContactModule,
+    ContactInfoModule,
     AuthModule,
     AmenitiesModule,
     SeoModule,

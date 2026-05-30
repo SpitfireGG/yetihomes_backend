@@ -9,10 +9,12 @@ import {
 } from '@nestjs/common';
 import { AffiliationsService } from './affilation.service';
 import { CreateAffiliationDto } from './dto/create-affilations.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('affiliations')
 export class AffiliationsController {
   constructor(private readonly affiliationsService: AffiliationsService) {}
+  @Public()
   @Get()
   getPublicAffiliations() {
     return this.affiliationsService.getPublicAffiliations();
@@ -28,6 +30,7 @@ export class AffiliationsController {
     return this.affiliationsService.create(createAffiliationDto);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.affiliationsService.findOne(id);

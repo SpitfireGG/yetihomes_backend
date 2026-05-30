@@ -24,8 +24,10 @@ export class BlogsService {
         });
       }
 
+      const { seo, ...data } = dto as typeof dto & { seo?: unknown };
+
       return await this.prisma.blogArticle.create({
-        data: dto,
+        data: data as Prisma.BlogArticleCreateInput,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -67,9 +69,11 @@ export class BlogsService {
         });
       }
 
+      const { seo, ...data } = dto as typeof dto & { seo?: unknown };
+
       return await this.prisma.blogArticle.update({
         where: { id },
-        data: dto,
+        data: data as Prisma.BlogArticleUpdateInput,
       });
     } catch (error) {
       throw new InternalServerErrorException(`Failed to update blog article.`);

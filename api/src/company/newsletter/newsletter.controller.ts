@@ -10,11 +10,13 @@ import {
 import { NewsletterService } from './newsletter.service';
 import { CreateNewsletterDto } from './dtos/create-newsletter.dto';
 import { UpdateNewsletterDto } from './dtos/update-newsletter.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('company/newsletters')
 export class NewsletterController {
   constructor(private readonly newsletterService: NewsletterService) {}
 
+  @Public()
   @Post()
   async create(@Body() createNewsletterDto: CreateNewsletterDto) {
     return this.newsletterService.create(createNewsletterDto);

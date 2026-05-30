@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { StaticPageService } from './static.service';
 import { CreateStaticPageDto } from './dto/create-static.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('content')
 export class StaticPageController {
@@ -19,21 +20,25 @@ export class StaticPageController {
     return this.staticPageService.create(createStaticPageDto);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.staticPageService.findAll();
   }
 
+  @Public()
   @Get('type/:type')
   findByType(@Param('type') type: string) {
     return this.staticPageService.findByType(type as any);
   }
 
+  @Public()
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.staticPageService.findBySlug(slug);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.staticPageService.findOne(id);

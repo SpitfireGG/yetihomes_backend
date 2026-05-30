@@ -52,7 +52,6 @@ const Page = () => {
                     <CardTitle>{privacyData?.title ?? "—"}</CardTitle>
 
                     <CardDescription hidden>
-                        {/* optional description */}
                     </CardDescription>
 
                     <CardAction>
@@ -65,7 +64,7 @@ const Page = () => {
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem>
-                                    <Link href={`/privacy/edit`} className="flex w-full">
+                                    <Link href={privacyData ? `/privacy/edit` : '#'} className="flex w-full">
                                         Edit
                                     </Link>
                                 </DropdownMenuItem>

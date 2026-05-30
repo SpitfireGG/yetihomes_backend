@@ -10,6 +10,9 @@ import { TextAreaInput } from '@/components/common/Inputs';
 import { toast } from 'sonner';
 import { API_KEY, API_URL } from '@/utils/main';
 import TableSkeleton from '@/components/common/table-skeleton';
+import { CRUD } from '@/api/crud';
+
+const blogCrud = new CRUD("api/blogs");
 
 const CATEGORIES = [
   'Real Estate',
@@ -55,7 +58,7 @@ export default function EditBlogPage() {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/blogs/${blogId}`, {
+        const res = await blogCrud.authFetch(`${API_URL}/api/blogs/${blogId}`, {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -129,11 +132,8 @@ export default function EditBlogPage() {
         formDataToSend.append('images', authorImage);
       }
 
-      const res = await fetch(`${API_URL}/api/blogs/${blogId}`, {
+      const res = await blogCrud.authFetch(`${API_URL}/api/blogs/${blogId}`, {
         method: 'PATCH',
-        headers: {
-          'x-api-key': API_KEY,
-        },
         body: formDataToSend,
       });
 

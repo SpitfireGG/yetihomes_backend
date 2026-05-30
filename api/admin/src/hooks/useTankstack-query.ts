@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Property } from "@/@types/property";
 import { TeamMember, TeamApiResponse, TeamListApiResponse } from "@/@types/company/team";
 import { CRUD } from "@/api/crud";
+import { API_URL, API_KEY } from "@/utils/main";
 
 /* API Instances */
 const properties = new CRUD("api/properties");
@@ -15,6 +16,7 @@ const affiliations = new CRUD("api/affiliations");
 const newsletters = new CRUD("api/company/newsletters");
 const legalDocuments = new CRUD("api/company/legal-documents");
 const languages = new CRUD("api/languages");
+const countries = new CRUD("api/countries");
 const currencies = new CRUD("api/countries");
 const faqCategories = new CRUD("api/faq-categories");
 const contentCategories = new CRUD("api/content-categories");
@@ -26,11 +28,10 @@ const csis = new CRUD("api/company/csis");
 const achievements = new CRUD("api/company/achievements");
 const companyAffilations = new CRUD("api/company/affilations");
 const guides = new CRUD("api/company/guides");
-const companyLegalDocs = new CRUD("api/company/legal-docs");
+const companyLegalDocs = new CRUD("api/company/legal-documents");
 const contactInfo = new CRUD("api/company/contact-info");
 const associations = new CRUD("api/company/associations");
 const contents = new CRUD("api/contents");
-const countries = new CRUD("api/countries");
 const amenities = new CRUD("api/amenities");
 
 /* ==================== PROPERTIES ==================== */
@@ -650,44 +651,6 @@ export const useCompanyGetContactInfoById = useGetCompanyContactInfoById;
 export const useCompanyGetAssociationsById = useGetCompanyAssociationsById;
 export const useCompanyGetCSIById = useGetCompanyCSIById;
 
-/* ==================== LEGACY TRIP HOOKS (from travel site - may not have backend) ==================== */
-// These hooks were from a travel site and may not have backend controllers in the real estate project
-export const useActivities = () => useQuery({
-    queryKey: ["activities"],
-    queryFn: async () => ({ data: [] }),
-    staleTime: 5 * 60 * 1000,
-});
-
-export const useActivitiesGetById = (id: string) => useQuery({
-    queryKey: ["activities", id],
-    queryFn: async () => ({ data: null }),
-    staleTime: 5 * 60 * 1000,
-});
-
-export const useDestinations = () => useQuery({
-    queryKey: ["destinations"],
-    queryFn: async () => ({ data: [] }),
-    staleTime: 5 * 60 * 1000,
-});
-
-export const useDestinationsGetById = (id: string) => useQuery({
-    queryKey: ["destinations", id],
-    queryFn: async () => ({ data: null }),
-    staleTime: 5 * 60 * 1000,
-});
-
-export const useTripDifficulties = () => useQuery({
-    queryKey: ["tripDifficulties"],
-    queryFn: async () => ({ data: [] }),
-    staleTime: 5 * 60 * 1000,
-});
-
-export const useGetTripHighlights = () => useQuery({
-    queryKey: ["tripHighlights"],
-    queryFn: async () => ({ data: [] }),
-    staleTime: 5 * 60 * 1000,
-});
-
 /* ==================== USERS ==================== */
 const users = new CRUD("api/auth/users");
 
@@ -709,9 +672,11 @@ export const useCompanyGetTeamsById = useTeamById;
 export const useCompanyLegalDocuments = useGetCompanyLegalDocsData;
 export const useGetCompanyContactInfo = useGetCompanyContactInfoData;
 export const useGetCompanyNewsLetters = useNewsletters;
-export const useGetCompanySocialMedia = () => useQuery({
+const socialMedia = new CRUD("api/company/contact-info/social-media");
+
+export const useGetCompanySocialMedia = () => useQuery<{ data: any[] }>({
     queryKey: ["companySocialMedia"],
-    queryFn: async () => ({ data: [] }),
+    queryFn: () => socialMedia.getData(),
     staleTime: 5 * 60 * 1000,
 });
 
@@ -746,9 +711,7 @@ type DashboardData = {
     id: string;
     title: string;
     imageUrl?: string;
-    views: number;
     enquiries: number;
-    conversionRate: number;
   }[];
   districts: { name: string; count: number }[];
 };
@@ -765,7 +728,11 @@ export const useDashboard = (range: string = '30d') => {
       const propertiesData = propertiesRes?.data || [];
       const inquiriesData = inquiriesRes?.data || [];
 
-      // Calculate metrics
+      const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 365;
+      const now = new Date();
+      const periodStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+      const prevPeriodStart = new Date(periodStart.getTime() - days * 24 * 60 * 60 * 1000);
+
       const totalListings = propertiesData.length;
       const publishedListings = propertiesData.filter((p: any) => p.status === 'PUBLISHED').length;
       const draftListings = propertiesData.filter((p: any) => p.status === 'DRAFT').length;
@@ -773,17 +740,12 @@ export const useDashboard = (range: string = '30d') => {
       const rentedListings = propertiesData.filter((p: any) => p.status === 'RENTED').length;
       const archivedListings = propertiesData.filter((p: any) => p.status === 'ARCHIVED').length;
 
-      // Property mix
       const houses = propertiesData.filter((p: any) => p.propertyType === 'HOUSE').length;
       const apartments = propertiesData.filter((p: any) => p.propertyType === 'APARTMENT').length;
       const lands = propertiesData.filter((p: any) => p.propertyType === 'LAND').length;
 
-      // Enquiries metrics
       const newEnquiries = inquiriesData.filter((i: any) => i.status === 'NEW').length;
-      const contactedEnquiries = inquiriesData.filter((i: any) => i.status === 'CONTACTED').length;
-      const closedEnquiries = inquiriesData.filter((i: any) => i.status === 'CLOSED').length;
 
-      // Pipeline
       const pipeline = [
         { status: 'DRAFT', count: draftListings },
         { status: 'PUBLISHED', count: publishedListings },
@@ -792,14 +754,12 @@ export const useDashboard = (range: string = '30d') => {
         { status: 'ARCHIVED', count: archivedListings },
       ];
 
-      // Property mix
       const mix = [
         { type: 'HOUSE' as const, count: houses },
         { type: 'APARTMENT' as const, count: apartments },
         { type: 'LAND' as const, count: lands },
       ];
 
-      // Calculate GMV (gross merchandise value) from sold/rented properties
       const gmvSold = propertiesData
         .filter((p: any) => p.status === 'SOLD' && p.priceAmount)
         .reduce((sum: number, p: any) => sum + Number(p.priceAmount), 0);
@@ -810,33 +770,74 @@ export const useDashboard = (range: string = '30d') => {
       const closedDeals = soldListings + rentedListings;
       const avgDealValue = closedDeals > 0 ? gmv / closedDeals : 0;
 
-      // Metrics
+      // Period-over-period deltas
+      const currentListings = propertiesData.filter((p: any) => new Date(p.createdAt) >= periodStart).length;
+      const prevListings = propertiesData.filter((p: any) => {
+        const d = new Date(p.createdAt);
+        return d >= prevPeriodStart && d < periodStart;
+      }).length;
+      const totalListingsDelta = prevListings > 0 ? ((currentListings - prevListings) / prevListings) * 100 : 0;
+
+      const currentEnquiries = inquiriesData.filter((i: any) => new Date(i.createdAt) >= periodStart).length;
+      const prevEnquiries = inquiriesData.filter((i: any) => {
+        const d = new Date(i.createdAt);
+        return d >= prevPeriodStart && d < periodStart;
+      }).length;
+      const newEnquiriesDelta = prevEnquiries > 0 ? ((currentEnquiries - prevEnquiries) / prevEnquiries) * 100 : 0;
+
+      const currentDeals = propertiesData.filter((p: any) => {
+        const d = new Date(p.updatedAt);
+        return d >= periodStart && (p.status === 'SOLD' || p.status === 'RENTED');
+      }).length;
+      const prevDeals = propertiesData.filter((p: any) => {
+        const d = new Date(p.updatedAt);
+        return d >= prevPeriodStart && d < periodStart && (p.status === 'SOLD' || p.status === 'RENTED');
+      }).length;
+      const closedDealsDelta = prevDeals > 0 ? ((currentDeals - prevDeals) / prevDeals) * 100 : 0;
+
+      const currentGmv = propertiesData
+        .filter((p: any) => (p.status === 'SOLD' || p.status === 'RENTED') && new Date(p.updatedAt) >= periodStart && p.priceAmount)
+        .reduce((sum: number, p: any) => sum + Number(p.priceAmount), 0);
+      const prevGmv = propertiesData
+        .filter((p: any) => {
+          const d = new Date(p.updatedAt);
+          return (p.status === 'SOLD' || p.status === 'RENTED') && d >= prevPeriodStart && d < periodStart && p.priceAmount;
+        })
+        .reduce((sum: number, p: any) => sum + Number(p.priceAmount), 0);
+      const gmvDelta = prevGmv > 0 ? ((currentGmv - prevGmv) / prevGmv) * 100 : 0;
+
       const metrics = {
         totalListings,
-        totalListingsDelta: 12.5,
+        totalListingsDelta: Math.round(totalListingsDelta * 10) / 10,
         newEnquiries,
-        newEnquiriesDelta: 8.3,
+        newEnquiriesDelta: Math.round(newEnquiriesDelta * 10) / 10,
         awaitingReply: newEnquiries,
         closedDeals,
-        closedDealsDelta: 15.2,
+        closedDealsDelta: Math.round(closedDealsDelta * 10) / 10,
         soldCount: soldListings,
         rentedCount: rentedListings,
         gmv,
-        gmvDelta: 22.1,
+        gmvDelta: Math.round(gmvDelta * 10) / 10,
         avgDealValue,
       };
 
       // Trend data
-      const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 365;
       const trend: { date: string; listings: number; enquiries: number }[] = [];
       for (let i = days; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        trend.push({
-          date: date.toISOString().split('T')[0],
-          listings: Math.floor(Math.random() * 5) + 1,
-          enquiries: Math.floor(Math.random() * 10) + 2,
-        });
+        const dateStr = date.toISOString().split('T')[0];
+        const dayStart = new Date(dateStr + 'T00:00:00Z');
+        const dayEnd = new Date(dateStr + 'T23:59:59Z');
+        const listings = propertiesData.filter((p: any) => {
+          const created = new Date(p.createdAt);
+          return created >= dayStart && created <= dayEnd;
+        }).length;
+        const enquiries = inquiriesData.filter((inq: any) => {
+          const created = new Date(inq.createdAt);
+          return created >= dayStart && created <= dayEnd;
+        }).length;
+        trend.push({ date: dateStr, listings, enquiries });
       }
 
       // Recent enquiries
@@ -851,10 +852,8 @@ export const useDashboard = (range: string = '30d') => {
           createdAt: inquiry.createdAt,
         }));
 
-      // Top listings
+      // Top listings — sorted by enquiry count
       const topListings = [...propertiesData]
-        .sort((a: any, b: any) => Number(b.priceAmount) - Number(a.priceAmount))
-        .slice(0, 10)
         .map((property: any) => {
           const primaryImage = property.images?.[0];
           const propertyEnquiries = inquiriesData.filter((i: any) => i.propertyId === property.id).length;
@@ -862,16 +861,17 @@ export const useDashboard = (range: string = '30d') => {
             id: property.id,
             title: property.title,
             imageUrl: primaryImage?.url,
-            views: Math.floor(Math.random() * 500) + 50,
             enquiries: propertyEnquiries,
-            conversionRate: propertyEnquiries > 0 ? Math.random() * 10 : 0,
           };
-        });
+        })
+        .sort((a, b) => b.enquiries - a.enquiries)
+        .slice(0, 10);
 
       // Districts
       const districtCount: Record<string, number> = {};
       propertiesData.forEach((p: any) => {
-        const district = p.district || 'Unknown';
+        const raw = p.district || 'Unknown';
+        const district = raw.trim().toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
         districtCount[district] = (districtCount[district] || 0) + 1;
       });
       const districts = Object.entries(districtCount)

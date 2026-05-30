@@ -10,6 +10,9 @@ import { TextAreaInput } from '@/components/common/Inputs';
 import { toast } from 'sonner';
 import { API_KEY, API_URL } from '@/utils/main';
 import { SeoMetadataForm } from '@/components/seo/seo-metadata-form';
+import { CRUD } from '@/api/crud';
+
+const blogCrud = new CRUD("api/blogs");
 
 const CATEGORIES = [
   'Real Estate',
@@ -80,11 +83,8 @@ export default function CreateBlogPage() {
         formDataToSend.append('images', authorImage);
       }
 
-      const res = await fetch(`${API_URL}/api/blogs`, {
+      const res = await blogCrud.authFetch(`${API_URL}/api/blogs`, {
         method: 'POST',
-        headers: {
-          'x-api-key': API_KEY,
-        },
         body: formDataToSend,
       });
 

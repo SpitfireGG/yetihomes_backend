@@ -175,7 +175,6 @@ export default function BlogsPage() {
       setError(null);
     } catch (err) {
       setError('Failed to fetch blogs');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }

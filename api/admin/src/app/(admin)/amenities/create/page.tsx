@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { API_KEY, API_URL } from '@/utils/main';
+import { CRUD } from '@/api/crud';
+
+const amenityCrud = new CRUD("api/amenities");
 
 const AMENITY_ICONS = [
   'Wifi',
@@ -38,11 +41,10 @@ export default function CreateAmenityPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/amenities`, {
+      const res = await amenityCrud.authFetch(`${API_URL}/api/amenities`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
         },
         body: JSON.stringify(formData),
       });

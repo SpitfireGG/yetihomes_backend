@@ -1,11 +1,13 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { PropertyType } from "@prisma/client";
 import { ViewsService } from "./views.service";
+import { Public } from "src/modules/auth/public.decorator";
 
 @Controller("analytics/views")
 export class ViewsController {
   constructor(private readonly views: ViewsService) {}
 
+  @Public()
   @Get(":type/:id")
   async getOne(
     @Param("type") type: PropertyType,

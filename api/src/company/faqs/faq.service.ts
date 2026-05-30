@@ -12,16 +12,20 @@ export class FaqService {
       data: dto,
     });
   }
+
   async findOne(id: string) {
-    const faq = this.prisma.faq.findUnique({
+    const faq = await this.prisma.faq.findUnique({
       where: { id },
     });
     if (!faq)
-      throw new NotFoundException(`request id could not be found #id-> ${id}`);
+      throw new NotFoundException(`FAQ with id ${id} was not found.`);
     return faq;
   }
+
   async findAll() {
-    return this.prisma.faq.findMany();
+    return this.prisma.faq.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async update(id: string, updateFaqsDto: UpdateFaqsDto) {

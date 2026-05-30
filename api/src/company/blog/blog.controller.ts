@@ -18,6 +18,7 @@ import { ImageUploadInterceptor } from 'src/utils/image-upload.interceptor';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { BlogsService } from './blog.service';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('blogs')
 export class BlogsController {
@@ -70,11 +71,13 @@ export class BlogsController {
     };
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.blogsService.findAll();
   }
 
+  @Public()
   @Get(':slug')
   findBySlug(@Param('slug') slug: string) {
     return this.blogsService.findBySlug(slug);

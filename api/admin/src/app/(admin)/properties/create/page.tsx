@@ -89,6 +89,12 @@ const currencies = [
   { value: "USD", label: "USD" },
 ];
 
+const badgeTones = [
+  { value: "NEUTRAL", label: "Neutral" },
+  { value: "WARM", label: "Warm" },
+  { value: "COOL", label: "Cool" },
+];
+
 const getVideoEmbedUrl = (url: string): string | null => {
   if (!url) return null;
   const youtubeMatch = url.match(
@@ -203,11 +209,8 @@ export default function CreatePropertyPage() {
         formDataToSend.append("images", image);
       });
 
-      const res = await fetch(`${API_URL}/api/properties`, {
+      const res = await propertyCrud.authFetch(`${API_URL}/api/properties`, {
         method: "POST",
-        headers: {
-          "x-api-key": API_KEY,
-        },
         body: formDataToSend,
       });
 
@@ -337,14 +340,77 @@ export default function CreatePropertyPage() {
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={formData.isFeatured}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, isFeatured: checked })
+            <div className="flex flex-wrap gap-6 items-center border border-border/60 p-4 rounded-md md:col-span-2">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={formData.isFeatured}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isFeatured: checked })
+                  }
+                />
+                <Label>Featured Property</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={formData.isVerified}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isVerified: checked })
+                  }
+                />
+                <Label>Verified</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={formData.isOwnerApproved}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isOwnerApproved: checked })
+                  }
+                />
+                <Label>Owner Approved</Label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Badge Label (e.g. Hot Deal)</Label>
+              <Input
+                value={formData.badgeLabel}
+                onChange={(e) =>
+                  setFormData({ ...formData, badgeLabel: e.target.value })
                 }
+                placeholder="Hot Deal"
               />
-              <Label>Featured Property</Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Badge Tone</Label>
+              <Select
+                value={formData.badgeTone}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, badgeTone: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {badgeTones.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Title Status (e.g. Clear Lal Purja)</Label>
+              <Input
+                value={formData.titleStatus}
+                onChange={(e) =>
+                  setFormData({ ...formData, titleStatus: e.target.value })
+                }
+                placeholder="Clear Lal Purja"
+              />
             </div>
 
             <div className="space-y-2">
@@ -614,6 +680,40 @@ export default function CreatePropertyPage() {
               </div>
 
               <div className="space-y-2">
+                <Label>Kitchens</Label>
+                <Input
+                  type="number"
+                  value={formData.houseDetails?.kitchens}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      houseDetails: {
+                        ...formData.houseDetails,
+                        kitchens: Number(e.target.value),
+                      },
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Floors</Label>
+                <Input
+                  type="number"
+                  value={formData.houseDetails?.floors}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      houseDetails: {
+                        ...formData.houseDetails,
+                        floors: Number(e.target.value),
+                      },
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label>Parking Spaces</Label>
                 <Input
                   type="number"
@@ -624,6 +724,23 @@ export default function CreatePropertyPage() {
                       houseDetails: {
                         ...formData.houseDetails,
                         parkingSpaces: Number(e.target.value),
+                      },
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Build Year</Label>
+                <Input
+                  type="number"
+                  value={formData.houseDetails?.buildYear}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      houseDetails: {
+                        ...formData.houseDetails,
+                        buildYear: Number(e.target.value),
                       },
                     })
                   }
@@ -658,6 +775,29 @@ export default function CreatePropertyPage() {
               </div>
             </div>
           )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div className="space-y-2">
+              <Label>Water Availability</Label>
+              <Input
+                value={formData.waterAvailability}
+                onChange={(e) =>
+                  setFormData({ ...formData, waterAvailability: e.target.value })
+                }
+                placeholder="e.g. 24/7 Supply, Well, Melamchi"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Electricity</Label>
+              <Input
+                value={formData.electricity}
+                onChange={(e) =>
+                  setFormData({ ...formData, electricity: e.target.value })
+                }
+                placeholder="e.g. NEA, Solar, Backup Generator"
+              />
+            </div>
+          </div>
 
           {(propertyType === "HOUSE" || propertyType === "APARTMENT") && amenities.length > 0 && (
             <div className="mt-6">

@@ -40,7 +40,7 @@ export class AffiliationsService {
   }
 
   async update(id: string, updateAffiliationDto: CreateAffiliationDto) {
-    await this.findOne(id); // Ensure it exists
+    await this.findOne(id);
     return this.prisma.affiliation.update({
       where: { id },
       data: updateAffiliationDto,

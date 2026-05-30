@@ -36,6 +36,7 @@ import { CRUD } from '@/api/crud';
 import TableSkeleton from '@/components/common/table-skeleton';
 import { cn } from '@/lib/utils';
 import { API_URL, API_KEY } from '@/utils/main';
+import { getImageUrl } from '@/components/common/optimized-image';
 
 const propertyCrud = new CRUD('api/properties');
 
@@ -48,12 +49,6 @@ async function getPropertyViewStats(propertyType: string, propertyId: string) {
     return await res.json();
   } catch { return null; }
 }
-
-const getImageUrl = (url: string) => {
-  if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return `${API_URL}${url}`;
-};
 
 const statusStyles: Record<string, string> = {
   DRAFT: 'bg-muted text-muted-foreground border-transparent',
@@ -103,8 +98,11 @@ const PropertyCard = memo(function PropertyCard({
   const primaryImage =
     property.images?.find((img: any) => img.isPrimary) || property.images?.[0];
   const imageUrl = primaryImage ? getImageUrl(primaryImage.url) : '';
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [viewCount, setViewCount] = useState<number | null>(null);
 
@@ -118,15 +116,42 @@ const PropertyCard = memo(function PropertyCard({
     });
   }, [property.propertyType, property.id]);
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
+  const handleArchive = async () => {
+    setIsArchiving(true);
     try {
       await propertyCrud.delete(property.id);
-      setShowDeleteDialog(false);
+      setShowArchiveDialog(false);
       toast.success('Property archived');
       onAction();
     } catch {
       toast.error('Failed to archive property');
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      await propertyCrud.publish(property.id);
+      toast.success('Property published');
+      onAction();
+    } catch {
+      toast.error('Failed to publish property');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await propertyCrud.hardDelete(property.id);
+      setShowDeleteDialog(false);
+      toast.success('Property deleted permanently');
+      onAction();
+    } catch {
+      toast.error('Failed to delete property');
     } finally {
       setIsDeleting(false);
     }
@@ -233,16 +258,27 @@ const PropertyCard = memo(function PropertyCard({
         </div>
 
         <div className="space-y-1.5 pt-1">
-          <Link href={`/properties/edit/${property.id}`} className="block">
+          <div className="flex gap-1.5">
+            <Link href={`/properties/edit/${property.id}`} className="flex-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-full text-xs font-medium"
+              >
+                <Edit className="mr-1.5 h-3 w-3" strokeWidth={2} />
+                Edit
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-full text-xs font-medium"
+              className="h-8 px-2.5 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/50 dark:hover:bg-red-950/40"
+              onClick={() => setShowDeleteDialog(true)}
+              title="Permanently Delete"
             >
-              <Edit className="mr-1.5 h-3 w-3" strokeWidth={2} />
-              Edit
+              <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
             </Button>
-          </Link>
+          </div>
 
           {property.status === 'PUBLISHED' && (
             <div className="flex gap-1.5">
@@ -271,18 +307,33 @@ const PropertyCard = memo(function PropertyCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 flex-1 text-[11px] font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                onClick={() => setShowDeleteDialog(true)}
+                className="h-7 flex-1 text-[11px] font-medium text-muted-foreground hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-orange-950/40 dark:hover:text-orange-400"
+                onClick={() => setShowArchiveDialog(true)}
               >
                 <Trash2 className="mr-1 h-3 w-3" strokeWidth={2} />
                 Archive
               </Button>
             </div>
           )}
+
+          {property.status !== 'PUBLISHED' && (
+            <div className="flex gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 flex-1 text-[11px] font-medium text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-900/50 dark:hover:bg-green-950/40"
+                onClick={handlePublish}
+                disabled={isPublishing}
+              >
+                <CheckCircle className="mr-1.5 h-3 w-3" strokeWidth={2} />
+                {isPublishing ? 'Publishing...' : 'Publish'}
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
 
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Archive this property?</DialogTitle>
@@ -291,6 +342,35 @@ const PropertyCard = memo(function PropertyCard({
                 {property.title}
               </span>{' '}
               will be hidden from public listings. You can restore it later.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowArchiveDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleArchive}
+              disabled={isArchiving}
+            >
+              {isArchiving ? 'Archiving…' : 'Archive property'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Permanently delete this property?</DialogTitle>
+            <DialogDescription>
+              <span className="font-medium text-foreground">
+                {property.title}
+              </span>{' '}
+              will be permanently deleted along with all its images and details. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -305,7 +385,7 @@ const PropertyCard = memo(function PropertyCard({
               onClick={handleDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Archiving…' : 'Archive property'}
+              {isDeleting ? 'Deleting…' : 'Delete permanently'}
             </Button>
           </DialogFooter>
         </DialogContent>

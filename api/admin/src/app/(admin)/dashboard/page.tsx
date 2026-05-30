@@ -23,7 +23,6 @@ import {
   Coins,
   TrendingUp,
   TrendingDown,
-  Eye,
   ArrowRight,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -34,6 +33,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useDashboard } from '@/hooks/useTankstack-query';
 import { cn } from '@/lib/utils';
 import { API_URL } from '@/utils/main';
+import { getImageUrl } from '@/components/common/optimized-image';
 import DashboardSkeleton from './skeleton';
 
 type Range = '7d' | '30d' | '90d' | '1y';
@@ -45,15 +45,6 @@ const formatNPR = (n: number) => {
 };
 
 const formatNumber = (n: number) => n.toLocaleString();
-
-const getImageUrl = (src: string | null | undefined): string => {
-  if (!src) return '/placeholder.png';
-  if (src.startsWith('http')) return src;
-  if (src.startsWith('/uploads')) return `${API_URL}${src}`;
-  const normalizedSrc = src.startsWith('/') ? src : `/${src}`;
-  if (normalizedSrc.startsWith('/uploads')) return `${API_URL}${normalizedSrc}`;
-  return `${API_URL}/uploads/${src}`;
-};
 
 const PIPELINE_COLORS: Record<string, string> = {
   DRAFT: '#cbd5e1',
@@ -513,18 +504,11 @@ export default function DashboardPage() {
                     <p className="truncate text-xs font-medium">{p.title}</p>
                     <div className="mt-0.5 flex items-center gap-2.5 text-[10px] text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" strokeWidth={1.75} />
-                        {formatNumber(p.views)}
-                      </span>
-                      <span className="flex items-center gap-1">
                         <Mail className="h-3 w-3" strokeWidth={1.75} />
-                        {p.enquiries}
+                        {p.enquiries} enquiries
                       </span>
                     </div>
                   </div>
-                  <span className="text-[10px] text-muted-foreground tabular-nums">
-                    {p.conversionRate.toFixed(1)}%
-                  </span>
                 </li>
               ))}
             </ul>

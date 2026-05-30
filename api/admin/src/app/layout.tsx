@@ -2,11 +2,6 @@ import 'reflect-metadata';
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./styles/globals.css";
-import { ThemeProvider } from '@/components/ui/theme-provider';
-import { TankStackProviders } from '@/components/provider/tankstackquery-provider';
-import { Toaster } from '@/components/ui/sonner';
-import { Provider } from 'react-redux'
-import { store } from '@/store/store';
 import { Providers } from '@/components/provider/provider';
 
 const popins = Poppins({

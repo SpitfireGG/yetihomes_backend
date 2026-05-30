@@ -12,11 +12,13 @@ import {
 import { InquiriesService } from './enquiries.service';
 import { CreateInquiryDto } from './dtos/create-enquiries.dto';
 import { UpdateInquiryStatusDto } from './dtos/update-enquiries.dto';
+import { Public } from 'src/modules/auth/public.decorator';
 
 @Controller('inquiries')
 export class InquiriesController {
   constructor(private readonly inquiriesService: InquiriesService) {}
 
+  @Public()
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createInquiryDto: CreateInquiryDto) {

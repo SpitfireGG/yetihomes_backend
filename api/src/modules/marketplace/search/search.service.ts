@@ -122,17 +122,14 @@ export class SearchService {
     const where = this.buildWhereClause(dto);
     const orderBy = this.buildOrderBy(dto.sortBy);
 
-    // Run count and data fetch in parallel for speed
     const [total, properties] = await Promise.all([
       this.prisma.property.count({ where }),
       this.prisma.property.findMany({
         where,
         orderBy,
-        take: limit + 1, // Fetch one extra to determine if there's a next page
         ...(dto.cursor
           ? {
               cursor: { id: dto.cursor },
-              skip: 1, // Skip the cursor itself
             }
           : {}),
         select: {
@@ -200,13 +197,11 @@ export class SearchService {
               isPrimary: true,
             },
             orderBy: { sortOrder: 'asc' },
-            take: 3, // Only fetch first 3 images for card display
           },
         },
       }),
     ]);
 
-    // Determine pagination
     const hasMore = properties.length > limit;
     const results = hasMore ? properties.slice(0, limit) : properties;
     const nextCursor = hasMore ? results[results.length - 1]?.id : null;
@@ -313,50 +308,124 @@ export class SearchService {
   }
 
   async getLandingSummary() {
-    const properties = await this.prisma.property.findMany({
-      where: {
-        status: 'PUBLISHED',
-      },
-      select: {
-        propertyType: true,
-        city: true,
-        district: true,
-        isFeatured: true,
-        createdAt: true,
-        houseDetails: {
-          select: {
-            usageType: true,
-            subType: true,
-          },
+    const categoriesCount = await Promise.all([
+      this.prisma.property.count({
+        where: {
+          status: 'PUBLISHED',
+          OR: [
+            { propertyType: PropertyType.APARTMENT },
+            { propertyType: PropertyType.HOUSE, houseDetails: { usageType: HouseUsageType.RESIDENTIAL } },
+          ],
         },
-        landDetails: {
-          select: {
-            subType: true,
-          },
+      }),
+      this.prisma.property.count({
+        where: {
+          status: 'PUBLISHED',
+          OR: [
+            { houseDetails: { usageType: HouseUsageType.COMMERCIAL } },
+            { landDetails: { subType: LandSubType.COMMERCIAL_LAND } },
+          ],
         },
-        images: {
-          select: {
-            url: true,
-          },
-          orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
-          take: 1,
+      }),
+      this.prisma.property.count({
+        where: {
+          status: 'PUBLISHED',
+          houseDetails: { usageType: HouseUsageType.SEMI_COMMERCIAL },
         },
-      },
-    });
+      }),
+      this.prisma.property.count({
+        where: {
+          status: 'PUBLISHED',
+          houseDetails: { subType: HouseSubType.VILLA },
+        },
+      }),
+      this.prisma.property.count({
+        where: { status: 'PUBLISHED', propertyType: PropertyType.APARTMENT },
+      }),
+      this.prisma.property.count({
+        where: { status: 'PUBLISHED', propertyType: PropertyType.LAND },
+      }),
+    ]);
 
-    return {
-      categories: this.buildLandingCategories(properties),
-      cities: this.buildLandingCities(properties),
-    };
+    const categories = [
+      { key: 'residential', label: 'Residential', count: categoriesCount[0] },
+      { key: 'commercial', label: 'Commercial', count: categoriesCount[1] },
+      { key: 'semi-commercial', label: 'Semi-Commercial', count: categoriesCount[2] },
+      { key: 'villa', label: 'Villa', count: categoriesCount[3] },
+      { key: 'apartments', label: 'Apartments', count: categoriesCount[4] },
+      { key: 'land-plot', label: 'Land Plot', count: categoriesCount[5] },
+    ];
+
+    const topCitiesRaw = await this.prisma.$queryRaw<any[]>`
+      SELECT 
+        COALESCE(NULLIF(TRIM(city), ''), NULLIF(TRIM(district), '')) as cityName,
+        COUNT(id) as count,
+        SUM(CASE WHEN isFeatured THEN 1 ELSE 0 END) as featuredCount,
+        MAX(createdAt) as latestCreatedAt
+      FROM Property
+      WHERE status = 'PUBLISHED'
+      GROUP BY LOWER(COALESCE(NULLIF(TRIM(city), ''), NULLIF(TRIM(district), '')))
+      HAVING cityName IS NOT NULL
+      ORDER BY count DESC, featuredCount DESC, latestCreatedAt DESC
+      LIMIT ${LANDING_CITY_LIMIT}
+    `;
+
+    const cities = await Promise.all(
+      topCitiesRaw.map(async (row) => {
+        const cityName = row.cityName;
+
+        const typeCounts = await this.prisma.property.groupBy({
+          by: ['propertyType'],
+          where: {
+            status: 'PUBLISHED',
+            OR: [
+              { city: { equals: cityName } },
+              { district: { equals: cityName } },
+            ],
+          },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 1,
+        });
+        const dominantPropertyType = typeCounts[0]?.propertyType || null;
+
+        const bestProperty = await this.prisma.property.findFirst({
+          where: {
+            status: 'PUBLISHED',
+            OR: [
+              { city: { equals: cityName } },
+              { district: { equals: cityName } },
+            ],
+          },
+          orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+          select: {
+            images: {
+              select: { url: true },
+              orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
+              take: 1,
+            },
+          },
+        });
+
+        const imageUrl = bestProperty?.images?.[0]?.url || null;
+
+        return {
+          city: cityName,
+          count: Number(row.count),
+          imageUrl,
+          dominantPropertyType,
+        };
+      })
+    );
+
+    return { categories, cities };
   }
 
   private buildWhereClause(dto: SearchPropertyDto): Prisma.PropertyWhereInput {
     const conditions: Prisma.PropertyWhereInput[] = [];
 
-    // Always filter for published properties only
     conditions.push({ status: 'PUBLISHED' });
 
-    // Keyword search — match against title, locationText, city, district, summary
     if (dto.q) {
       const keyword = dto.q.trim();
       conditions.push({
@@ -370,17 +439,14 @@ export class SearchService {
       });
     }
 
-    // Property type filter
     if (dto.propertyType) {
       conditions.push({ propertyType: dto.propertyType });
     }
 
-    // Listing type filter
     if (dto.listingType) {
       conditions.push({ listingType: dto.listingType });
     }
 
-    // Price range
     if (dto.minPrice !== undefined || dto.maxPrice !== undefined) {
       const priceFilter: Prisma.DecimalFilter = {};
       if (dto.minPrice !== undefined) priceFilter.gte = dto.minPrice;
@@ -388,7 +454,6 @@ export class SearchService {
       conditions.push({ priceAmount: priceFilter });
     }
 
-    // Location filters
     if (dto.city) {
       conditions.push({
         city: { contains: dto.city },
@@ -401,7 +466,6 @@ export class SearchService {
       });
     }
 
-    // Area range
     if (dto.minArea !== undefined || dto.maxArea !== undefined) {
       const areaFilter: Prisma.DecimalNullableFilter = {};
       if (dto.minArea !== undefined) areaFilter.gte = dto.minArea;
@@ -413,12 +477,10 @@ export class SearchService {
       conditions.push({ areaUnit: dto.areaUnit });
     }
 
-    // Featured filter
     if (dto.isFeatured !== undefined) {
       conditions.push({ isFeatured: dto.isFeatured });
     }
 
-    // SubType filter — filter by property subType (DETACHED_HOME, VILLA, etc.)
     if (dto.subType) {
       const subTypeFilters: Prisma.PropertyWhereInput[] = [];
 
@@ -447,7 +509,6 @@ export class SearchService {
       }
     }
 
-    // Bedroom filter — applies to houses and apartments
     if (dto.bedrooms !== undefined) {
       conditions.push({
         OR: [
@@ -457,7 +518,6 @@ export class SearchService {
       });
     }
 
-    // Bathroom filter — applies to houses and apartments
     if (dto.bathrooms !== undefined) {
       conditions.push({
         OR: [
@@ -467,7 +527,6 @@ export class SearchService {
       });
     }
 
-    // Furnishing filter — applies to houses and apartments
     if (dto.furnishing) {
       conditions.push({
         OR: [
@@ -477,7 +536,6 @@ export class SearchService {
       });
     }
 
-    // Facing direction filter — applies to lands
     if (dto.facingDirection) {
       conditions.push({
         landDetails: { facingDirection: dto.facingDirection },
@@ -503,121 +561,4 @@ export class SearchService {
     }
   }
 
-  private buildLandingCategories(
-    properties: LandingPropertySnapshot[],
-  ): LandingCategorySummary[] {
-    return LANDING_CATEGORY_DEFINITIONS.map((category) => ({
-      key: category.key,
-      label: category.label,
-      count: properties.filter(category.matches).length,
-    }));
-  }
-
-  private buildLandingCities(
-    properties: LandingPropertySnapshot[],
-  ): LandingCitySummary[] {
-    const cities = new Map<
-      string,
-      {
-        city: string;
-        count: number;
-        featuredCount: number;
-        latestCreatedAt: number;
-        imageUrl: string | null;
-        imageScore: number;
-        propertyTypeCounts: Record<PropertyType, number>;
-      }
-    >();
-
-    for (const property of properties) {
-      const cityName = (property.city ?? property.district ?? '').trim();
-
-      if (!cityName) {
-        continue;
-      }
-
-      const cityEntry = cities.get(cityName) ?? {
-        city: cityName,
-        count: 0,
-        featuredCount: 0,
-        latestCreatedAt: 0,
-        imageUrl: null,
-        imageScore: Number.NEGATIVE_INFINITY,
-        propertyTypeCounts: {
-          [PropertyType.HOUSE]: 0,
-          [PropertyType.APARTMENT]: 0,
-          [PropertyType.LAND]: 0,
-        },
-      };
-
-      cityEntry.count += 1;
-      cityEntry.propertyTypeCounts[property.propertyType] += 1;
-
-      if (property.isFeatured) {
-        cityEntry.featuredCount += 1;
-      }
-
-      const createdAt = property.createdAt.getTime();
-      cityEntry.latestCreatedAt = Math.max(
-        cityEntry.latestCreatedAt,
-        createdAt,
-      );
-
-      const imageUrl = property.images[0]?.url ?? null;
-      const imageScore =
-        createdAt + (property.isFeatured ? 10_000_000_000_000 : 0);
-
-      if (imageUrl && imageScore > cityEntry.imageScore) {
-        cityEntry.imageUrl = imageUrl;
-        cityEntry.imageScore = imageScore;
-      }
-
-      cities.set(cityName, cityEntry);
-    }
-
-    return Array.from(cities.values())
-      .sort((left, right) => {
-        if (right.count !== left.count) {
-          return right.count - left.count;
-        }
-
-        if (right.featuredCount !== left.featuredCount) {
-          return right.featuredCount - left.featuredCount;
-        }
-
-        return right.latestCreatedAt - left.latestCreatedAt;
-      })
-      .slice(0, LANDING_CITY_LIMIT)
-      .map((city) => ({
-        city: city.city,
-        count: city.count,
-        imageUrl: city.imageUrl,
-        dominantPropertyType: this.resolveDominantPropertyType(
-          city.propertyTypeCounts,
-        ),
-      }));
-  }
-
-  private resolveDominantPropertyType(
-    counts: Record<PropertyType, number>,
-  ): PropertyType | null {
-    const ranking = [
-      PropertyType.HOUSE,
-      PropertyType.APARTMENT,
-      PropertyType.LAND,
-    ];
-    let bestType: PropertyType | null = null;
-    let bestCount = 0;
-
-    for (const propertyType of ranking) {
-      const count = counts[propertyType];
-
-      if (count > bestCount) {
-        bestType = propertyType;
-        bestCount = count;
-      }
-    }
-
-    return bestType;
-  }
 }

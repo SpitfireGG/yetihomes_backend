@@ -1,4 +1,4 @@
-import { Building2, Contact, FileSpreadsheet, Home, Inbox, LayoutGrid, MapPinned, Mountain, Newspaper, Phone, Search, Settings, Sparkles, Building, Key, Users, Globe } from "lucide-react";
+import { Building2, Contact, FileSpreadsheet, Home, Inbox, LayoutGrid, MapPinned, Mountain, Newspaper, Phone, Search, Settings, Sparkles, Building, Key, Users, Globe, Star } from "lucide-react";
 
 export const navigations = [
     {
@@ -53,6 +53,7 @@ export const navigations = [
         icon: Building2,
         subNavigations: [
             { title: 'Teams', link: '/company/teams' },
+            { title: 'Affiliations', link: '/affiliations' },
             { title: 'About Us', link: '/company/about-us' },
         ]
     },
@@ -81,6 +82,14 @@ export const navigations = [
         subNavigations: [
             { title: 'All Articles', link: '/blogs' },
             { title: 'Add New', link: '/blogs/create' },
+        ]
+    },
+    {
+        title: "Reviews",
+        url: "/reviews",
+        icon: Star,
+        subNavigations: [
+            { title: 'All Reviews', link: '/reviews' },
         ]
     },
     {

@@ -27,7 +27,6 @@ type Props = {
 }
 
 const AddContentForm = ({ destinationId, tripId }: Props) => {
-    console.log(destinationId, "-", tripId)
     const destinationCrud = new CRUD(`api/company/achievements`)
     const { data } = useCompanyGetAchievementsById(destinationId)
     const destination = data?.data
