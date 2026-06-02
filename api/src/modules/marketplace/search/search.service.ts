@@ -8,6 +8,8 @@ import {
   LandSubType,
   Prisma,
   PropertyType,
+  FacingDirection,
+  RoadType,
 } from '@prisma/client';
 
 type LandingCategoryKey =
@@ -136,7 +138,9 @@ export class SearchService {
           id: true,
           title: true,
           slug: true,
+          propertyCode: true,
           summary: true,
+          description: true,
           propertyType: true,
           listingType: true,
           priceAmount: true,
@@ -149,9 +153,17 @@ export class SearchService {
           locationText: true,
           district: true,
           city: true,
+          latitude: true,
+          longitude: true,
           areaValue: true,
           areaUnit: true,
+          titleStatus: true,
+          waterAvailability: true,
+          electricity: true,
           isVerified: true,
+          isOwnerApproved: true,
+          videoUrl: true,
+          mapIframe: true,
           publishedAt: true,
           createdAt: true,
           houseDetails: {
@@ -164,6 +176,9 @@ export class SearchService {
               parkingSpaces: true,
               furnishingStatus: true,
               buildYear: true,
+              facingDirection: true,
+              roadType: true,
+              roadSize: true,
             },
           },
           apartmentDetails: {
@@ -177,6 +192,9 @@ export class SearchService {
               hasLift: true,
               hasParking: true,
               furnishingStatus: true,
+              facingDirection: true,
+              roadType: true,
+              roadSize: true,
             },
           },
           landDetails: {
@@ -186,6 +204,7 @@ export class SearchService {
               frontageFeet: true,
               facingDirection: true,
               plotShape: true,
+              zoningType: true,
               isCornerPlot: true,
             },
           },
@@ -197,6 +216,13 @@ export class SearchService {
               isPrimary: true,
             },
             orderBy: { sortOrder: 'asc' },
+          },
+          servicesNearby: {
+            select: {
+              id: true,
+              serviceType: true,
+              name: true,
+            },
           },
         },
       }),
@@ -217,6 +243,86 @@ export class SearchService {
     };
   }
 
+  async getNewListings() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const properties = await this.prisma.property.findMany({
+      where: {
+        status: 'PUBLISHED',
+        createdAt: { gte: sevenDaysAgo },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        propertyCode: true,
+        propertyType: true,
+        listingType: true,
+        priceAmount: true,
+        currency: true,
+        pricePeriod: true,
+        locationText: true,
+        city: true,
+        district: true,
+        createdAt: true,
+        images: {
+          select: {
+            url: true,
+            isPrimary: true,
+            sortOrder: true,
+          },
+          orderBy: { sortOrder: 'asc' },
+        },
+        houseDetails: {
+          select: {
+            subType: true,
+            bedrooms: true,
+            bathrooms: true,
+            kitchens: true,
+            floors: true,
+            parkingSpaces: true,
+            furnishingStatus: true,
+            buildYear: true,
+            facingDirection: true,
+            roadType: true,
+            roadSize: true,
+          },
+        },
+        apartmentDetails: {
+          select: {
+            subType: true,
+            bedrooms: true,
+            bathrooms: true,
+            balconies: true,
+            floorNumber: true,
+            totalFloors: true,
+            hasLift: true,
+            hasParking: true,
+            furnishingStatus: true,
+            facingDirection: true,
+            roadType: true,
+            roadSize: true,
+          },
+        },
+        landDetails: {
+          select: {
+            subType: true,
+            roadAccessFeet: true,
+            frontageFeet: true,
+            facingDirection: true,
+            plotShape: true,
+            isCornerPlot: true,
+          },
+        },
+      },
+    });
+
+    return { data: properties };
+  }
+
   async getBySlug(slug: string) {
     const property = await this.prisma.property.findFirst({
       where: { slug, status: 'PUBLISHED' },
@@ -224,6 +330,7 @@ export class SearchService {
         id: true,
         title: true,
         slug: true,
+        propertyCode: true,
         summary: true,
         description: true,
         propertyType: true,
@@ -262,6 +369,9 @@ export class SearchService {
             parkingSpaces: true,
             furnishingStatus: true,
             buildYear: true,
+            facingDirection: true,
+            roadType: true,
+            roadSize: true,
           },
         },
         apartmentDetails: {
@@ -275,6 +385,9 @@ export class SearchService {
             hasLift: true,
             hasParking: true,
             furnishingStatus: true,
+            facingDirection: true,
+            roadType: true,
+            roadSize: true,
           },
         },
         landDetails: {
@@ -284,6 +397,7 @@ export class SearchService {
             frontageFeet: true,
             facingDirection: true,
             plotShape: true,
+            zoningType: true,
             isCornerPlot: true,
           },
         },
@@ -296,6 +410,13 @@ export class SearchService {
             sortOrder: true,
           },
           orderBy: { sortOrder: 'asc' },
+        },
+        servicesNearby: {
+          select: {
+            id: true,
+            serviceType: true,
+            name: true,
+          },
         },
       },
     });
@@ -538,7 +659,20 @@ export class SearchService {
 
     if (dto.facingDirection) {
       conditions.push({
-        landDetails: { facingDirection: dto.facingDirection },
+        OR: [
+          { landDetails: { facingDirection: dto.facingDirection } },
+          { houseDetails: { facingDirection: dto.facingDirection } },
+          { apartmentDetails: { facingDirection: dto.facingDirection } },
+        ],
+      });
+    }
+
+    if (dto.roadType) {
+      conditions.push({
+        OR: [
+          { houseDetails: { roadType: dto.roadType } },
+          { apartmentDetails: { roadType: dto.roadType } },
+        ],
       });
     }
 

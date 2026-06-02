@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -30,6 +31,7 @@ const PROPERTY_SELECT = {
   id: true,
   title: true,
   slug: true,
+  propertyCode: true,
   summary: true,
   propertyType: true,
   listingType: true,
@@ -64,6 +66,7 @@ const FULL_INCLUDE = {
   houseDetails: true,
   apartmentDetails: true,
   landDetails: true,
+  servicesNearby: true,
 } as const;
 
 const FULL_INCLUDE_WITH_AMENITIES = {
@@ -82,6 +85,7 @@ const FULL_INCLUDE_WITH_AMENITIES = {
   propertyAmenities: {
     include: { amenity: { select: { id: true, name: true, icon: true } } },
   },
+  servicesNearby: true,
 } as const;
 
 @Controller('properties')
@@ -90,13 +94,26 @@ export class PropertiesController {
 
   @Public()
   @Get()
-  async findAll() {
-    const properties = await this.prisma.property.findMany({
-      where: { status: { in: ['PUBLISHED', 'DRAFT'] } },
-      select: PROPERTY_SELECT,
-      orderBy: { createdAt: 'desc' },
-    });
-    return { data: properties };
+  async findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+    const pageNum = page ? Math.max(1, parseInt(page, 10) || 1) : 1;
+    const limitNum = limit ? Math.max(1, Math.min(100, parseInt(limit, 10) || 20)) : 20;
+    const skip = (pageNum - 1) * limitNum;
+
+    const [properties, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where: { status: { in: ['PUBLISHED', 'DRAFT'] } },
+        select: PROPERTY_SELECT,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limitNum,
+      }),
+      this.prisma.property.count({ where: { status: { in: ['PUBLISHED', 'DRAFT'] } } }),
+    ]);
+
+    return {
+      data: properties,
+      meta: { total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) },
+    };
   }
 
   @Get('admin/all')
@@ -142,6 +159,7 @@ export class PropertiesController {
     const {
       title,
       slug,
+      propertyCode,
       summary,
       description,
       propertyType,
@@ -172,6 +190,7 @@ export class PropertiesController {
       landDetails,
       details,
       amenityIds,
+      servicesNearby,
     } = payload;
 
     const finalDetails =
@@ -189,6 +208,7 @@ export class PropertiesController {
       data: {
         title,
         slug,
+        propertyCode: propertyCode || null,
         summary,
         description,
         propertyType,
@@ -239,6 +259,16 @@ export class PropertiesController {
       });
     }
 
+    if (servicesNearby?.length > 0) {
+      await this.prisma.serviceNearby.createMany({
+        data: servicesNearby.map((s: any) => ({
+          propertyId: property.id,
+          serviceType: s.serviceType,
+          name: s.name,
+        })),
+      });
+    }
+
     return {
       success: true,
       message: 'Property created successfully',
@@ -267,6 +297,7 @@ export class PropertiesController {
     const {
       title,
       slug,
+      propertyCode,
       summary,
       description,
       propertyType,
@@ -298,6 +329,7 @@ export class PropertiesController {
       details,
       imagesToDelete,
       amenityIds,
+      servicesNearby,
     } = dto;
 
     const finalDetails =
@@ -354,11 +386,25 @@ export class PropertiesController {
         }
       }
 
+      if (servicesNearby && Array.isArray(servicesNearby)) {
+        await tx.serviceNearby.deleteMany({ where: { propertyId: id } });
+        if (servicesNearby.length > 0) {
+          await tx.serviceNearby.createMany({
+            data: servicesNearby.map((s: any) => ({
+              propertyId: id,
+              serviceType: s.serviceType,
+              name: s.name,
+            })),
+          });
+        }
+      }
+
       await tx.property.update({
         where: { id },
         data: {
           title,
           slug,
+          propertyCode: propertyCode || null,
           summary,
           description,
           propertyType,

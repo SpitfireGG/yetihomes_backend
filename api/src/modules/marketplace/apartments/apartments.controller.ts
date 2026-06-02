@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -80,8 +81,10 @@ export class ApartmentsController {
 
   @Public()
   @Get()
-  async findAll() {
-    return this.apartmentsService.findAll();
+  async findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+    const pageNum = page ? Math.max(1, parseInt(page, 10) || 1) : 1;
+    const limitNum = limit ? Math.max(1, Math.min(100, parseInt(limit, 10) || 20)) : 20;
+    return this.apartmentsService.findAll(pageNum, limitNum);
   }
 
   @Public()

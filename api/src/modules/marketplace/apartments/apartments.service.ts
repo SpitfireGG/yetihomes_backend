@@ -13,6 +13,7 @@ const APARTMENT_INCLUDE = {
   apartmentDetails: true,
   images: { orderBy: { sortOrder: 'asc' as const } },
   propertyAmenities: { include: { amenity: true } },
+  servicesNearby: true,
 };
 
 @Injectable()
@@ -20,7 +21,7 @@ export class ApartmentsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createApartment(dto: CreateApartmentDtos & { images?: any[] }) {
-    const { details, images, amenityIds, ...propertyData } = dto;
+    const { details, images, amenityIds, servicesNearby, ...propertyData } = dto;
 
     try {
       const newApartment = await this.prisma.property.create({
@@ -42,6 +43,15 @@ export class ApartmentsService {
                   create: amenityIds.map((amenityId) => ({ amenityId })),
                 }
               : undefined,
+          servicesNearby:
+            servicesNearby && servicesNearby.length > 0
+              ? {
+                  create: servicesNearby.map((s) => ({
+                    serviceType: s.serviceType,
+                    name: s.name,
+                  })),
+                }
+              : undefined,
         },
         include: APARTMENT_INCLUDE,
       });
@@ -60,12 +70,19 @@ export class ApartmentsService {
     }
   }
 
-  async findAll() {
-    return this.prisma.property.findMany({
-      where: { propertyType: PropertyType.APARTMENT },
-      include: APARTMENT_INCLUDE,
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where: { propertyType: PropertyType.APARTMENT },
+        include: APARTMENT_INCLUDE,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.property.count({ where: { propertyType: PropertyType.APARTMENT } }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async findOne(id: string) {
@@ -86,7 +103,7 @@ export class ApartmentsService {
   async update(id: string, dto: UpdateApartmentDto & { images?: any[] }) {
     await this.findOne(id);
 
-    const { details, images, ...propertyData } = dto;
+    const { details, images, servicesNearby, ...propertyData } = dto;
 
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -108,6 +125,19 @@ export class ApartmentsService {
           await tx.propertyImage.createMany({
             data: images.map((img) => ({ ...img, propertyId: id })),
           });
+        }
+
+        if (servicesNearby && Array.isArray(servicesNearby)) {
+          await tx.serviceNearby.deleteMany({ where: { propertyId: id } });
+          if (servicesNearby.length > 0) {
+            await tx.serviceNearby.createMany({
+              data: servicesNearby.map((s: any) => ({
+                propertyId: id,
+                serviceType: s.serviceType,
+                name: s.name,
+              })),
+            });
+          }
         }
 
         return tx.property.findUniqueOrThrow({

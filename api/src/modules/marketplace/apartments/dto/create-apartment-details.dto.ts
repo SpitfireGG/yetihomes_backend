@@ -1,6 +1,6 @@
-import { IsEnum, IsInt, IsOptional, IsBoolean, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsBoolean, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApartmentSubType, FurnishingStatus } from '@prisma/client';
+import { ApartmentSubType, FurnishingStatus, FacingDirection, RoadType } from '@prisma/client';
 
 export class CreateApartmentDetailsDto {
   @IsEnum(ApartmentSubType)
@@ -46,4 +46,16 @@ export class CreateApartmentDetailsDto {
   @IsOptional()
   @IsEnum(FurnishingStatus)
   furnishingStatus?: FurnishingStatus;
+
+  @IsOptional()
+  @IsEnum(FacingDirection)
+  facingDirection?: FacingDirection;
+
+  @IsOptional()
+  @IsEnum(RoadType)
+  roadType?: RoadType;
+
+  @IsOptional()
+  @IsNumber()
+  roadSize?: number;
 }

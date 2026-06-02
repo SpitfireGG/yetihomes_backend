@@ -13,6 +13,7 @@ const HOUSE_INCLUDE = {
   houseDetails: true,
   images: { orderBy: { sortOrder: 'asc' as const } },
   propertyAmenities: { include: { amenity: true } },
+  servicesNearby: true,
 };
 
 @Injectable()
@@ -20,7 +21,7 @@ export class HouseService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createHouses(dto: CreateHouseDto) {
-    const { details, images, amenityIds, ...propertyData } = dto;
+    const { details, images, amenityIds, servicesNearby, ...propertyData } = dto;
 
     try {
       const newHouse = await this.prisma.property.create({
@@ -40,6 +41,15 @@ export class HouseService {
             amenityIds && amenityIds.length > 0
               ? {
                   create: amenityIds.map((amenityId) => ({ amenityId })),
+                }
+              : undefined,
+          servicesNearby:
+            servicesNearby && servicesNearby.length > 0
+              ? {
+                  create: servicesNearby.map((s) => ({
+                    serviceType: s.serviceType,
+                    name: s.name,
+                  })),
                 }
               : undefined,
         },
@@ -75,7 +85,7 @@ export class HouseService {
   }
 
   async update(id: string, dto: UpdateHouseDto & { images?: any }) {
-    const { details, images, ...propertydata } = dto;
+    const { details, images, servicesNearby, ...propertydata } = dto;
 
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -96,6 +106,18 @@ export class HouseService {
             data: images.map((img) => ({ ...img, propertyId: id })),
           });
         }
+        if (servicesNearby && Array.isArray(servicesNearby)) {
+          await tx.serviceNearby.deleteMany({ where: { propertyId: id } });
+          if (servicesNearby.length > 0) {
+            await tx.serviceNearby.createMany({
+              data: servicesNearby.map((s: any) => ({
+                propertyId: id,
+                serviceType: s.serviceType,
+                name: s.name,
+              })),
+            });
+          }
+        }
         return tx.property.findUniqueOrThrow({
           where: { id },
           include: HOUSE_INCLUDE,
@@ -113,12 +135,19 @@ export class HouseService {
     }
   }
 
-  async findAll() {
-    return this.prisma.property.findMany({
-      where: { propertyType: 'HOUSE' },
-      include: HOUSE_INCLUDE,
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where: { propertyType: 'HOUSE' },
+        include: HOUSE_INCLUDE,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.property.count({ where: { propertyType: 'HOUSE' } }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
   async delete(id: string) {

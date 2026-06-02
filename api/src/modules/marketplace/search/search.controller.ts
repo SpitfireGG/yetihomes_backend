@@ -20,6 +20,12 @@ export class SearchController {
   }
 
   @Public()
+  @Get('new-listings')
+  async getNewListings() {
+    return this.searchService.getNewListings();
+  }
+
+  @Public()
   @Get(':slug')
   async getBySlug(@Param('slug') slug: string) {
     return this.searchService.getBySlug(slug);

@@ -14,6 +14,7 @@ import {
   AreaUnit,
   FurnishingStatus,
   FacingDirection,
+  RoadType,
 } from '@prisma/client';
 
 export enum SortBy {
@@ -91,6 +92,10 @@ export class SearchPropertyDto {
   @IsOptional()
   @IsEnum(FacingDirection)
   facingDirection?: FacingDirection;
+
+  @IsOptional()
+  @IsEnum(RoadType)
+  roadType?: RoadType;
 
   @IsOptional()
   @Transform(({ value }) => {

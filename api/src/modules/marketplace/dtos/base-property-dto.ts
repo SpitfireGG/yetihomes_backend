@@ -8,6 +8,7 @@ import {
   ValidateNested,
   IsUrl,
   IsArray,
+  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
@@ -17,8 +18,18 @@ import {
   PricePeriod,
   AreaUnit,
   BadgeTone,
+  ServiceNearbyType,
 } from '@prisma/client';
 import { CreateBasePropertyImageDto } from './base-property-image-dto';
+
+export class ServiceNearbyInputDto {
+  @IsEnum(ServiceNearbyType)
+  serviceType: ServiceNearbyType;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+}
 
 export class BasePropertyDto {
   @IsString()
@@ -28,6 +39,11 @@ export class BasePropertyDto {
   @IsString()
   @IsNotEmpty()
   slug: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(6)
+  propertyCode?: string;
 
   @IsString()
   @IsOptional()
@@ -113,4 +129,10 @@ export class BasePropertyDto {
   @IsOptional()
   @IsString({ each: true })
   amenityIds?: string[];
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ServiceNearbyInputDto)
+  servicesNearby?: ServiceNearbyInputDto[];
 }

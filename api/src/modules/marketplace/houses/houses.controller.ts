@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -68,7 +69,9 @@ export class HouseController {
 
   @Public()
   @Get()
-  findAll() {
-    return this.houseService.findAll();
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+    const pageNum = page ? Math.max(1, parseInt(page, 10) || 1) : 1;
+    const limitNum = limit ? Math.max(1, Math.min(100, parseInt(limit, 10) || 20)) : 20;
+    return this.houseService.findAll(pageNum, limitNum);
   }
 }

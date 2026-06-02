@@ -1,5 +1,5 @@
-import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
-import { HouseSubType, HouseUsageType, FurnishingStatus } from '@prisma/client';
+import { IsEnum, IsInt, IsOptional, IsNumber, Min } from 'class-validator';
+import { HouseSubType, HouseUsageType, FurnishingStatus, FacingDirection, RoadType } from '@prisma/client';
 
 export class CreateHouseDetailsDto {
   @IsEnum(HouseSubType)
@@ -41,4 +41,16 @@ export class CreateHouseDetailsDto {
   @IsInt()
   @IsOptional()
   buildYear?: number;
+
+  @IsEnum(FacingDirection)
+  @IsOptional()
+  facingDirection?: FacingDirection;
+
+  @IsEnum(RoadType)
+  @IsOptional()
+  roadType?: RoadType;
+
+  @IsNumber()
+  @IsOptional()
+  roadSize?: number;
 }
