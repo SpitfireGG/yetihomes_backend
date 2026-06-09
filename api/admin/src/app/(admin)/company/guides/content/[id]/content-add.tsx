@@ -14,11 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 
 import {
-    useActivitiesGetById,
     useCompanyGetGuidesById,
-    useCompanyGetTeamsById,
-    useDestinationsGetById,
-    useGetTripHighlights,
     useLanguages,
 } from '@/hooks/useTankstack-query'
 import { CRUD } from '@/api/crud'

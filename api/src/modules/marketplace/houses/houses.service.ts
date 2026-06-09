@@ -21,7 +21,15 @@ export class HouseService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createHouses(dto: CreateHouseDto) {
-    const { details, images, amenityIds, servicesNearby, ...propertyData } = dto;
+    const {
+      details,
+      images,
+      amenityIds,
+      servicesNearby,
+      ...propertyDataWithSeo
+    } = dto as CreateHouseDto & { seo?: unknown };
+    const propertyData = { ...propertyDataWithSeo };
+    delete propertyData.seo;
 
     try {
       const newHouse = await this.prisma.property.create({
@@ -84,8 +92,11 @@ export class HouseService {
     return house;
   }
 
-  async update(id: string, dto: UpdateHouseDto & { images?: any }) {
-    const { details, images, servicesNearby, ...propertydata } = dto;
+  async update(id: string, dto: UpdateHouseDto) {
+    const { details, images, servicesNearby, ...propertyDataWithSeo } =
+      dto as UpdateHouseDto & { seo?: unknown };
+    const propertydata = { ...propertyDataWithSeo };
+    delete propertydata.seo;
 
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -110,7 +121,7 @@ export class HouseService {
           await tx.serviceNearby.deleteMany({ where: { propertyId: id } });
           if (servicesNearby.length > 0) {
             await tx.serviceNearby.createMany({
-              data: servicesNearby.map((s: any) => ({
+              data: servicesNearby.map((s) => ({
                 propertyId: id,
                 serviceType: s.serviceType,
                 name: s.name,
@@ -129,9 +140,7 @@ export class HouseService {
           throw new NotFoundException(`House with id ${id} was not found.`);
         }
       }
-      throw new InternalServerErrorException(
-        `Failed to update house listing.`,
-      );
+      throw new InternalServerErrorException(`Failed to update house listing.`);
     }
   }
 
@@ -147,7 +156,10 @@ export class HouseService {
       }),
       this.prisma.property.count({ where: { propertyType: 'HOUSE' } }),
     ]);
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async delete(id: string) {
@@ -161,9 +173,7 @@ export class HouseService {
           throw new NotFoundException(`House with id ${id} was not found.`);
         }
       }
-      throw new InternalServerErrorException(
-        `Failed to delete house listing.`,
-      );
+      throw new InternalServerErrorException(`Failed to delete house listing.`);
     }
   }
 }

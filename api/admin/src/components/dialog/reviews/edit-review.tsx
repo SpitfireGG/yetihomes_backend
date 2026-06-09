@@ -159,7 +159,7 @@ export const EditReviewDialog = ({ reviewId, data }: Props) => {
                             <Input
                                 id="rating"
                                 name="rating"
-                                type="number"
+                                type="number" step="any"
                                 min={1}
                                 max={5}
                                 value={formData.rating}

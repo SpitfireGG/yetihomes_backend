@@ -18,7 +18,6 @@ import { useDefaultLanguage } from '@/components/common/language'
 
 const AchivementCreate = () => {
     const trips = new CRUD(`api/company/csis`)
-    // const { data: languages } = useLanguages()
     const englishLanguage = useDefaultLanguage()
     const route = useRouter()
     const [formData, setFormData] = useState<CreateCSIDto>({

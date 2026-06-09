@@ -129,7 +129,13 @@ export class CRUD {
       if (!res.ok) {
         throw new Error("Failed to fetch data");
       }
-      const data = await res.json();
+      const rawText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(`Invalid JSON response: ${rawText.substring(0, 200)}`);
+      }
       return data;
     } catch (error: any) {
       throw error;
@@ -147,7 +153,13 @@ export class CRUD {
       if (!res.ok) {
         throw new Error("Failed to fetch data");
       }
-      const data = await res.json();
+      const rawText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(`Invalid JSON response: ${rawText.substring(0, 200)}`);
+      }
       return data;
     } catch (error: any) {
       throw error;

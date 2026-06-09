@@ -6,7 +6,7 @@ export interface TeamMember {
   email: string;
   bio: string;
   expertise: string[];
-  education: string;
+  phone?: string;
   thumbnail: string | null;
   image: string | null;
   createdAt: string;
@@ -20,7 +20,7 @@ export interface TeamMemberFormData {
   email: string;
   bio: string;
   expertise: string[];
-  education: string;
+  phone?: string;
   thumbnail?: File | string | null;
   image?: File | string | null;
 }

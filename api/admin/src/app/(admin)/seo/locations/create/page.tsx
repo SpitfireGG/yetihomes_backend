@@ -38,7 +38,8 @@ export default function CreateLocationPage() {
         body: JSON.stringify({ ...formData, seo }),
       });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Failed to create location page');
+      if (!res.ok)
+        throw new Error(result.message || 'Failed to create location page');
       toast.success('Location page created successfully');
       router.push('/seo/locations');
     } catch (error: any) {
@@ -57,7 +58,10 @@ export default function CreateLocationPage() {
             value={formData.name}
             onChange={(e) => {
               const name = e.target.value;
-              const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+              const slug = name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
               setFormData({ ...formData, name, slug });
             }}
             placeholder="e.g., Lalitpur"
@@ -76,7 +80,9 @@ export default function CreateLocationPage() {
           <Label>District</Label>
           <Input
             value={formData.district}
-            onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, district: e.target.value })
+            }
             placeholder="Lalitpur"
           />
         </div>
@@ -84,42 +90,52 @@ export default function CreateLocationPage() {
           <Label>Province</Label>
           <Input
             value={formData.province}
-            onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, province: e.target.value })
+            }
             placeholder="Bagmati"
           />
         </div>
         <div className="space-y-2">
           <Label>Latitude</Label>
           <Input
-            type="number"
+            type="number" step="any"
             step="any"
-            value={formData.latitude}
-            onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+            value={formData.latitude || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, latitude: e.target.value })
+            }
             placeholder="27.6644"
           />
         </div>
         <div className="space-y-2">
           <Label>Longitude</Label>
           <Input
-            type="number"
+            type="number" step="any"
             step="any"
-            value={formData.longitude}
-            onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+            value={formData.longitude || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, longitude: e.target.value })
+            }
             placeholder="85.3188"
           />
         </div>
         <div className="space-y-2">
           <Label>Display Order</Label>
           <Input
-            type="number"
-            value={formData.displayOrder}
-            onChange={(e) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
+            type="number" step="any"
+            value={formData.displayOrder || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, displayOrder: Number(e.target.value) })
+            }
           />
         </div>
         <div className="flex items-center space-x-2">
           <Switch
             checked={formData.isActive}
-            onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+            onCheckedChange={(checked) =>
+              setFormData({ ...formData, isActive: checked })
+            }
           />
           <Label>Active</Label>
         </div>
@@ -128,7 +144,9 @@ export default function CreateLocationPage() {
             label="Description"
             name="description"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             placeholder="Description of the location..."
             row={4}
           />
@@ -138,8 +156,12 @@ export default function CreateLocationPage() {
       <SeoMetadataForm seo={seo} onChange={setSeo} baseSlug={formData.slug} />
 
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Location Page'}</Button>
+        <Button type="button" variant="outline" onClick={() => router.back()}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating...' : 'Create Location Page'}
+        </Button>
       </div>
     </form>
   );

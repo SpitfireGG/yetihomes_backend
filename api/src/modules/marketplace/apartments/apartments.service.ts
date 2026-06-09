@@ -20,8 +20,16 @@ const APARTMENT_INCLUDE = {
 export class ApartmentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createApartment(dto: CreateApartmentDtos & { images?: any[] }) {
-    const { details, images, amenityIds, servicesNearby, ...propertyData } = dto;
+  async createApartment(dto: CreateApartmentDtos) {
+    const {
+      details,
+      images,
+      amenityIds,
+      servicesNearby,
+      ...propertyDataWithSeo
+    } = dto as CreateApartmentDtos & { seo?: unknown };
+    const propertyData = { ...propertyDataWithSeo };
+    delete propertyData.seo;
 
     try {
       const newApartment = await this.prisma.property.create({
@@ -80,9 +88,14 @@ export class ApartmentsService {
         skip,
         take: limit,
       }),
-      this.prisma.property.count({ where: { propertyType: PropertyType.APARTMENT } }),
+      this.prisma.property.count({
+        where: { propertyType: PropertyType.APARTMENT },
+      }),
     ]);
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: string) {
@@ -100,10 +113,13 @@ export class ApartmentsService {
     return apartment;
   }
 
-  async update(id: string, dto: UpdateApartmentDto & { images?: any[] }) {
+  async update(id: string, dto: UpdateApartmentDto) {
     await this.findOne(id);
 
-    const { details, images, servicesNearby, ...propertyData } = dto;
+    const { details, images, servicesNearby, ...propertyDataWithSeo } =
+      dto as UpdateApartmentDto & { seo?: unknown };
+    const propertyData = { ...propertyDataWithSeo };
+    delete propertyData.seo;
 
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -131,7 +147,7 @@ export class ApartmentsService {
           await tx.serviceNearby.deleteMany({ where: { propertyId: id } });
           if (servicesNearby.length > 0) {
             await tx.serviceNearby.createMany({
-              data: servicesNearby.map((s: any) => ({
+              data: servicesNearby.map((s) => ({
                 propertyId: id,
                 serviceType: s.serviceType,
                 name: s.name,
@@ -148,9 +164,7 @@ export class ApartmentsService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new NotFoundException(
-            `Apartment with id ${id} was not found.`,
-          );
+          throw new NotFoundException(`Apartment with id ${id} was not found.`);
         }
       }
       throw new InternalServerErrorException(

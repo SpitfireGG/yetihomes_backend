@@ -1,15 +1,14 @@
-import React from 'react'
-import AboutEditForm from './abou-edit-form'
+import AboutEditForm from './abou-edit-form';
 
-type Props = {
-    params: Promise<{ id: string }>
+export function generateStaticParams(): { id: string }[] {
+  return [{ id: 'placeholder' }];
 }
 
-const page = async ({ params }: Props) => {
-    const { id } = await params
-    return (
-        <AboutEditForm termsId={id} />
-    )
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <AboutEditForm termsId={id} />;
 }
-
-export default page

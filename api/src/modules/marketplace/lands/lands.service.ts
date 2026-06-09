@@ -21,7 +21,15 @@ export class LandService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createLands(dto: CreateLandDto) {
-    const { details, images, amenityIds, servicesNearby, ...propertyData } = dto;
+    const {
+      details,
+      images,
+      amenityIds,
+      servicesNearby,
+      ...propertyDataWithSeo
+    } = dto as CreateLandDto & { seo?: unknown };
+    const propertyData = { ...propertyDataWithSeo };
+    delete propertyData.seo;
 
     try {
       const newLand = await this.prisma.property.create({
@@ -80,7 +88,10 @@ export class LandService {
       }),
       this.prisma.property.count({ where: { propertyType: 'LAND' } }),
     ]);
-    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: string) {
@@ -98,7 +109,10 @@ export class LandService {
 
   async update(id: string, dto: UpdateLandDto) {
     await this.findOne(id);
-    const { details, images, servicesNearby, ...propertyData } = dto;
+    const { details, images, servicesNearby, ...propertyDataWithSeo } =
+      dto as UpdateLandDto & { seo?: unknown };
+    const propertyData = { ...propertyDataWithSeo };
+    delete propertyData.seo;
     try {
       return await this.prisma.$transaction(async (tx) => {
         await tx.property.update({
@@ -125,7 +139,7 @@ export class LandService {
           await tx.serviceNearby.deleteMany({ where: { propertyId: id } });
           if (servicesNearby.length > 0) {
             await tx.serviceNearby.createMany({
-              data: servicesNearby.map((s: any) => ({
+              data: servicesNearby.map((s) => ({
                 propertyId: id,
                 serviceType: s.serviceType,
                 name: s.name,

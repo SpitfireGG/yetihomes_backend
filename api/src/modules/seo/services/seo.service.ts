@@ -1,11 +1,12 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { 
-  CreateLocationPageDto, 
-  CreatePropertyTypePageDto, 
-  CreateAgentDto, 
+import {
+  CreateLocationPageDto,
+  CreatePropertyTypePageDto,
+  CreateAgentDto,
   CreateRedirectRuleDto,
-  isReservedSlug 
+  isReservedSlug,
 } from '../dto/seo-metadata.dto';
 
 @Injectable()
@@ -14,7 +15,7 @@ export class SeoService {
 
   async createLocationPage(dto: CreateLocationPageDto) {
     const { seo, ...pageData } = dto;
-    
+
     if (seo?.slug) {
       await this.prisma.seoMetadata.create({
         data: {
@@ -33,9 +34,9 @@ export class SeoService {
         },
       });
     }
-    
+
     return this.prisma.locationPage.create({
-      data: pageData as any,
+      data: pageData as Prisma.LocationPageUncheckedCreateInput,
       include: { seoMetadata: true },
     });
   }
@@ -56,10 +57,11 @@ export class SeoService {
   }
 
   async updateLocationPage(id: string, dto: CreateLocationPageDto) {
-    const { seo, ...pageData } = dto;
+    const pageData = { ...dto };
+    delete pageData.seo;
     return this.prisma.locationPage.update({
       where: { id },
-      data: pageData as any,
+      data: pageData as Prisma.LocationPageUncheckedUpdateInput,
       include: { seoMetadata: true },
     });
   }
@@ -69,8 +71,10 @@ export class SeoService {
   }
 
   async createPropertyTypePage(dto: CreatePropertyTypePageDto) {
+    const pageData = { ...dto };
+    delete pageData.seo;
     return this.prisma.propertyTypePage.create({
-      data: dto as any,
+      data: pageData as Prisma.PropertyTypePageUncheckedCreateInput,
       include: { seoMetadata: true },
     });
   }
@@ -91,8 +95,10 @@ export class SeoService {
   }
 
   async createAgent(dto: CreateAgentDto) {
+    const agentData = { ...dto };
+    delete agentData.seo;
     return this.prisma.agent.create({
-      data: dto as any,
+      data: agentData as Prisma.AgentUncheckedCreateInput,
       include: { seoMetadata: true },
     });
   }
@@ -108,7 +114,7 @@ export class SeoService {
   async getAgentBySlug(slug: string) {
     return this.prisma.agent.findUnique({
       where: { slug },
-      include: { 
+      include: {
         seoMetadata: true,
         properties: {
           where: { status: 'PUBLISHED' },
@@ -133,7 +139,9 @@ export class SeoService {
   }
 
   async getRedirects() {
-    return this.prisma.redirectRule.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.redirectRule.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async deleteRedirect(id: string) {

@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateTeamMemberDto } from './dto/create-teams.dto';
@@ -12,18 +17,27 @@ export class TeamService {
     private readonly slugService: SlugService,
   ) {}
 
-  async create(dto: CreateTeamMemberDto & { thumbnail?: string; image?: string }) {
+  async create(
+    dto: CreateTeamMemberDto & { thumbnail?: string; image?: string },
+  ) {
     try {
-      const slug = dto.slug || this.slugService.slugify(dto.name);
-      const uniqueSlug = await this.slugService.ensureUnique(slug, 'TeamMember');
+      const data = { ...dto } as typeof dto & { seo?: unknown };
+      delete data.seo;
+      const slug = data.slug || this.slugService.slugify(data.name);
+      const uniqueSlug = await this.slugService.ensureUnique(
+        slug,
+        'TeamMember',
+      );
       const newMember = await this.prisma.teamMember.create({
-        data: { ...dto, slug: uniqueSlug },
+        data: { ...data, slug: uniqueSlug },
       });
       return newMember;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ConflictException('A team member with this email already exists.');
+          throw new ConflictException(
+            'A team member with this email already exists.',
+          );
         }
       }
       throw new InternalServerErrorException('Failed to create team member.');
@@ -39,7 +53,7 @@ export class TeamService {
   async findById(id: string) {
     try {
       return await this.prisma.teamMember.findUniqueOrThrow({ where: { id } });
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Team member with ID ${id} not found.`);
     }
   }
@@ -49,12 +63,14 @@ export class TeamService {
     dto: UpdateTeamMemberDto & { thumbnail?: string; image?: string },
   ) {
     try {
+      const data = { ...dto } as typeof dto & { seo?: unknown };
+      delete data.seo;
       const updatedMember = await this.prisma.teamMember.update({
         where: { id },
-        data: dto,
+        data,
       });
       return updatedMember;
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException(`Failed to update team member.`);
     }
   }

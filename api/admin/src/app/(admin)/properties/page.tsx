@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo, memo, useRef, useEffect } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +16,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import {
   Search,
   Plus,
@@ -42,12 +49,17 @@ const propertyCrud = new CRUD('api/properties');
 
 async function getPropertyViewStats(propertyType: string, propertyId: string) {
   try {
-    const res = await fetch(`${API_URL}/api/analytics/views/${propertyType}/${propertyId}`, {
-      headers: { 'x-api-key': API_KEY },
-    });
+    const res = await fetch(
+      `${API_URL}/api/analytics/views/${propertyType}/${propertyId}`,
+      {
+        headers: { 'x-api-key': API_KEY },
+      },
+    );
     if (!res.ok) return null;
     return await res.json();
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 const statusStyles: Record<string, string> = {
@@ -107,13 +119,16 @@ const PropertyCard = memo(function PropertyCard({
   const [viewCount, setViewCount] = useState<number | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     getPropertyViewStats(property.propertyType, property.id).then((data) => {
+      if (controller.signal.aborted) return;
       if (data?.data?.totalViews !== undefined) {
         setViewCount(data.data.totalViews);
       } else if (data?.totalViews !== undefined) {
         setViewCount(data.totalViews);
       }
     });
+    return () => controller.abort();
   }, [property.propertyType, property.id]);
 
   const handleArchive = async () => {
@@ -179,13 +194,13 @@ const PropertyCard = memo(function PropertyCard({
 
   const detailLine = (() => {
     if (property.propertyType === 'HOUSE' && property.houseDetails) {
-      return `${property.houseDetails.bedrooms} bed · ${property.houseDetails.bathrooms} bath`;
+      return `${property.houseDetails.bedrooms ?? 0} bed · ${property.houseDetails.bathrooms ?? 0} bath`;
     }
     if (property.propertyType === 'APARTMENT' && property.apartmentDetails) {
-      return `${property.apartmentDetails.bedrooms} bed · ${property.apartmentDetails.bathrooms} bath`;
+      return `${property.apartmentDetails.bedrooms ?? 0} bed · ${property.apartmentDetails.bathrooms ?? 0} bath`;
     }
     if (property.propertyType === 'LAND' && property.landDetails) {
-      return `${property.landDetails.frontageFeet} ft frontage`;
+      return `${property.landDetails.frontageFeet ?? 0} ft frontage`;
     }
     return null;
   })();
@@ -259,7 +274,10 @@ const PropertyCard = memo(function PropertyCard({
 
         <div className="space-y-1.5 pt-1">
           <div className="flex gap-1.5">
-            <Link href={`/properties/edit/${property.id}`} className="flex-1">
+            <Link
+              href={`/properties/edit?id=${property.id}`}
+              className="flex-1"
+            >
               <Button
                 variant="outline"
                 size="sm"
@@ -370,7 +388,8 @@ const PropertyCard = memo(function PropertyCard({
               <span className="font-medium text-foreground">
                 {property.title}
               </span>{' '}
-              will be permanently deleted along with all its images and details. This action cannot be undone.
+              will be permanently deleted along with all its images and details.
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -432,15 +451,15 @@ const PropertySection = memo(function PropertySection({
   );
 });
 
+const ITEMS_PER_PAGE = 24;
+
 export default function PropertiesPage() {
   const { data, isLoading, refetch } = useProperties();
   const queryClient = useQueryClient();
   const properties = data?.data || [];
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  const [gridColumns, setGridColumns] = useState(4);
-
-  const parentRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(1);
 
   const filteredProperties = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -457,12 +476,15 @@ export default function PropertiesPage() {
     });
   }, [properties, searchQuery, activeTab]);
 
-  const virtualizer = useVirtualizer({
-    count: filteredProperties.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 320,
-    overscan: 4,
-  });
+  const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
+  const paginatedProperties = filteredProperties.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE,
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, activeTab]);
 
   const houses = filteredProperties.filter(
     (p: any) => p.propertyType === 'HOUSE',
@@ -498,7 +520,7 @@ export default function PropertiesPage() {
             strokeWidth={1.75}
           />
           <Input
-            placeholder="Search by title or location…"
+            placeholder="Search by title or location\u2026"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 pl-9 text-sm"
@@ -592,36 +614,74 @@ export default function PropertiesPage() {
           />
         </div>
       ) : (
-        <div
-          ref={parentRef}
-          className="contents"
-          style={{ height: virtualizer.getTotalSize() }}
-        >
-          {virtualizer.getVirtualItems().map((virtualItem) => {
-            const property = filteredProperties[virtualItem.index];
-            return (
-              <div
-                key={property.id}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${virtualItem.size}px`,
-                  transform: `translateY(${virtualItem.start}px)`,
-                }}
-              >
-                <PropertyCard property={property} onAction={handleAction} />
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {paginatedProperties.map((property) => (
+            <div key={property.id} style={{ contain: 'content' }}>
+              <PropertyCard property={property} onAction={handleAction} />
+            </div>
+          ))}
         </div>
       )}
 
       {filteredProperties.length > 0 && (
-        <p className="border-t border-border/60 pt-4 text-center text-xs text-muted-foreground tabular-nums">
-          Showing {filteredProperties.length} of {properties.length} properties
-        </p>
+        <div className="flex flex-col items-center gap-3 border-t border-border/60 pt-4">
+          <p className="text-center text-xs text-muted-foreground tabular-nums">
+            Showing {paginatedProperties.length} of {filteredProperties.length}{' '}
+            {filteredProperties.length === 1 ? 'property' : 'properties'}
+            {searchQuery || activeTab !== 'all'
+              ? ` (filtered from ${properties.length})`
+              : ''}
+          </p>
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={
+                      page === 1
+                        ? 'pointer-events-none opacity-50'
+                        : 'cursor-pointer'
+                    }
+                  />
+                </PaginationItem>
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 7) {
+                    pageNum = i + 1;
+                  } else if (page <= 4) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 3) {
+                    pageNum = totalPages - 6 + i;
+                  } else {
+                    pageNum = page - 3 + i;
+                  }
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        isActive={page === pageNum}
+                        onClick={() => setPage(pageNum)}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={
+                      page === totalPages
+                        ? 'pointer-events-none opacity-50'
+                        : 'cursor-pointer'
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </div>
       )}
     </div>
   );

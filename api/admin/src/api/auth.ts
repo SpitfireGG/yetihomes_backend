@@ -96,7 +96,13 @@ export class Auth {
       }
     }
 
-    const result = await res.json();
+    const text = await res.text();
+    let result: ApiResponse<T> | null = null;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error(`Invalid JSON from API: ${text.substring(0, 200)}`);
+    }
 
     if (!res.ok) {
       throw new Error(result?.message || "Request failed");
@@ -150,7 +156,13 @@ export class Auth {
         body: JSON.stringify({ refreshToken }),
       });
 
-      const result = await res.json();
+      const refreshText = await res.text();
+      let result;
+      try {
+        result = JSON.parse(refreshText);
+      } catch {
+        throw new Error(`Refresh token endpoint returned non-JSON: ${refreshText.substring(0, 200)}`);
+      }
 
       if (!res.ok) throw new Error(result?.message || "Refresh failed");
 

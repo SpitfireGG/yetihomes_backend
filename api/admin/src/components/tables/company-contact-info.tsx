@@ -8,7 +8,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Search, ArrowUpDown, MoreHorizontal } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import DeleteDialog from "../dialog/_common/delete"
-import { useGetCompanyContactInfo, useGetTripHighlights } from "@/hooks/useTankstack-query"
+import { useGetCompanyContactInfo } from "@/hooks/useTankstack-query"
 import TableSkeleton from "../common/table-skeleton"
 import { AddTeamDialog } from "../dialog/company-team/add-team"
 import { AddContactInfoDialog } from "../dialog/company-information/add-contact-info"
@@ -51,10 +51,6 @@ export default function ContactInfoTable() {
 
     const paginatedCustomers = sortedCustomers.slice(startIndex, endIndex);
     const totalPages = Math.ceil(sortedCustomers.length / ITEMS_PER_PAGE);
-
-    // if (isLoading) {
-    //     return <TableSkeleton />
-    // }
 
     return (
         <div className="space-y-6 p-4 border rounded-md mt-2">

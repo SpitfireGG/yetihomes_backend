@@ -1,16 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { API_KEY, API_URL } from '@/utils/main';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
 
 export default function LocationPagesPage() {
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchPages();
@@ -29,6 +31,17 @@ export default function LocationPagesPage() {
       setLoading(false);
     }
   };
+
+  const filteredPages = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return pages;
+    return pages.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(q) ||
+        p.slug?.toLowerCase().includes(q) ||
+        p.district?.toLowerCase().includes(q),
+    );
+  }, [pages, searchQuery]);
 
   const toggleActive = async (id: string, current: boolean) => {
     try {
@@ -74,14 +87,31 @@ export default function LocationPagesPage() {
         </Link>
       </div>
 
+      <div className="relative w-full sm:max-w-sm">
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          strokeWidth={1.75}
+        />
+        <Input
+          placeholder="Search by name, slug, or district..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="h-9 pl-9 text-sm"
+        />
+      </div>
+
       {loading ? (
         <div className="text-center py-8 text-muted-foreground">Loading...</div>
-      ) : pages.length === 0 ? (
+      ) : filteredPages.length === 0 ? (
         <div className="text-center py-8 border rounded-lg">
-          <p className="text-muted-foreground">No location pages yet</p>
-          <Link href="/seo/locations/create">
-            <Button variant="link" className="mt-2">Create your first location page</Button>
-          </Link>
+          <p className="text-muted-foreground">
+            {searchQuery ? 'No location pages match your search' : 'No location pages yet'}
+          </p>
+          {!searchQuery && (
+            <Link href="/seo/locations/create">
+              <Button variant="link" className="mt-2">Create your first location page</Button>
+            </Link>
+          )}
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
@@ -96,7 +126,7 @@ export default function LocationPagesPage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {pages.map((page) => (
+              {filteredPages.map((page) => (
                 <tr key={page.id} className="hover:bg-accent/50">
                   <td className="p-3">{page.name}</td>
                   <td className="p-3 text-sm text-muted-foreground">{page.slug}</td>
@@ -118,6 +148,11 @@ export default function LocationPagesPage() {
               ))}
             </tbody>
           </table>
+          {searchQuery && filteredPages.length !== pages.length && (
+            <p className="border-t border-border/60 p-3 text-center text-xs text-muted-foreground tabular-nums">
+              Showing {filteredPages.length} of {pages.length} pages
+            </p>
+          )}
         </div>
       )}
     </div>

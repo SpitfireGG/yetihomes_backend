@@ -59,6 +59,9 @@ enum AreaUnit {
   SQ_M
   AANA
   ROPANI
+  BIGHA
+  KATTHA
+  DHUR
 }
 
 enum BadgeTone {
@@ -75,10 +78,16 @@ enum FurnishingStatus {
 
 enum HouseSubType {
   BUNGALOW
+  SEMI_BUNGALOW
   VILLA
   DUPLEX
   TOWNHOUSE
+  COMMERCIAL
+  SEMI_COMMERCIAL 
+  FLAT_SYSTEM_HOSUE
+  COLONY_HOUSE
 }
+
 
 enum HouseUsageType {
   RESIDENTIAL
@@ -91,12 +100,16 @@ enum ApartmentSubType {
   APARTMENT
   PENTHOUSE
   CONDO
+  LUXURY
 }
 
 enum LandSubType {
   RESIDENTIAL_PLOT
   COMMERCIAL_LAND
   AGRICULTURAL_LAND
+  COLONY_LAND
+  GUTHI_LAND
+
 }
 
 enum FacingDirection {
@@ -108,6 +121,33 @@ enum FacingDirection {
   NORTH_WEST
   SOUTH_EAST
   SOUTH_WEST
+}
+
+enum RoadType {
+  PITCHED
+  CONCRETE
+  GRAVEL
+  UNDER_CONSTRUCTION
+  NONE
+}
+
+enum ServiceNearbyType {
+  SCHOOL
+  HOSPITAL
+  PHARMACY
+  SUPERMARKET
+  PARK
+  TEMPLE
+  MOSQUE
+  CHURCH
+  GYM
+  RESTAURANT
+  BANK
+  ATM
+  GAS_STATION
+  BUS_STOP
+  AIRPORT
+  OTHER
 }
 
 enum InquiryType {
@@ -128,6 +168,7 @@ model Property {
   id           String         @id @default(uuid())
   title        String
   slug         String         @unique
+  propertyCode String?        @db.VarChar(6)
   summary      String?  @db.Text
   description  String   @db.Text
   propertyType PropertyType
@@ -171,6 +212,7 @@ model Property {
   landDetails       LandDetails?
   images            PropertyImage[]
   propertyAmenities PropertyAmenity[]
+  servicesNearby    ServiceNearby[]
   inquiries         Inquiry[]
   seoMetadata       SeoMetadata[]
 
@@ -200,6 +242,9 @@ model HouseDetails {
   parkingSpaces    Int?
   furnishingStatus FurnishingStatus?
   buildYear        Int?
+  facingDirection  FacingDirection?
+  roadType         RoadType?
+  roadSize         Decimal?     @db.Decimal(8, 2)
 
   @@index([propertyId])
 }
@@ -217,6 +262,9 @@ model ApartmentDetails {
   hasLift          Boolean           @default(false)
   hasParking       Boolean           @default(false)
   furnishingStatus FurnishingStatus?
+  facingDirection  FacingDirection?
+  roadType         RoadType?
+  roadSize         Decimal?     @db.Decimal(8, 2)
 
   @@index([propertyId])
 }
@@ -275,6 +323,17 @@ model PropertyAmenity {
 
   @@id([propertyId, amenityId])
   @@index([amenityId])
+}
+
+model ServiceNearby {
+  id          String            @id @default(uuid())
+  propertyId  String
+  property    Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  serviceType ServiceNearbyType
+  name        String            @db.VarChar(200)
+
+  @@index([propertyId])
+  @@index([serviceType])
 }
 
 model Inquiry {
@@ -377,7 +436,7 @@ model TeamMember {
   email     String   @unique
   bio       String   @db.Text
   expertise Json
-  education String   @db.Text
+  phone     String?
   thumbnail String?
   image     String?
   createdAt DateTime @default(now())

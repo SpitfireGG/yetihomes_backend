@@ -1,109 +1,147 @@
-"use client";
-import React, { useState, useRef } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TextAreaInput, TextInput } from "@/components/common/Inputs";
+'use client';
+import React, { useState, useRef } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TextAreaInput, TextInput } from '@/components/common/Inputs';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { API_KEY, API_URL } from "@/utils/main";
-import { CRUD } from "@/api/crud";
-import { useAmenities } from "@/hooks/useTankstack-query";
-import { Checkbox } from "@/components/ui/checkbox";
-import { SeoMetadataForm } from "@/components/seo/seo-metadata-form";
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { API_KEY, API_URL } from '@/utils/main';
+import { CRUD } from '@/api/crud';
+import { useAmenities } from '@/hooks/useTankstack-query';
+import { Checkbox } from '@/components/ui/checkbox';
+import { SeoMetadataForm } from '@/components/seo/seo-metadata-form';
 
-const propertyCrud = new CRUD("api/properties");
+const propertyCrud = new CRUD('api/properties');
 
 const propertyTypes = [
-  { value: "HOUSE", label: "House" },
-  { value: "APARTMENT", label: "Apartment" },
-  { value: "LAND", label: "Land" },
+  { value: 'HOUSE', label: 'House' },
+  { value: 'APARTMENT', label: 'Apartment' },
+  { value: 'LAND', label: 'Land' },
 ];
 
 const listingTypes = [
-  { value: "SALE", label: "For Sale" },
-  { value: "RENT", label: "For Rent" },
+  { value: 'SALE', label: 'For Sale' },
+  { value: 'RENT', label: 'For Rent' },
 ];
 
 const pricePeriods = [
-  { value: "TOTAL", label: "Total Price" },
-  { value: "MONTHLY", label: "Monthly" },
-  { value: "YEARLY", label: "Yearly" },
+  { value: 'TOTAL', label: 'Total Price' },
+  { value: 'MONTHLY', label: 'Monthly' },
+  { value: 'YEARLY', label: 'Yearly' },
 ];
 
 const houseSubTypes = [
-  { value: "BUNGALOW", label: "Bungalow" },
-  { value: "VILLA", label: "Villa" },
-  { value: "DUPLEX", label: "Duplex" },
-  { value: "TOWNHOUSE", label: "Townhouse" },
+  { value: 'BUNGALOW', label: 'Bungalow' },
+  { value: 'SEMI_BUNGALOW', label: 'Semi Bungalow' },
+  { value: 'VILLA', label: 'Villa' },
+  { value: 'DUPLEX', label: 'Duplex' },
+  { value: 'TOWNHOUSE', label: 'Townhouse' },
+  { value: 'COMMERCIAL', label: 'Commercial' },
+  { value: 'SEMI_COMMERCIAL', label: 'Semi Commercial' },
+  { value: 'FLAT_SYSTEM_HOSUE', label: 'Flat System House' },
+  { value: 'COLONY_HOUSE', label: 'Colony House' },
 ];
 
 const apartmentSubTypes = [
-  { value: "STUDIO", label: "Studio" },
-  { value: "APARTMENT", label: "Apartment" },
-  { value: "PENTHOUSE", label: "Penthouse" },
-  { value: "CONDO", label: "Condo" },
+  { value: 'STUDIO', label: 'Studio' },
+  { value: 'APARTMENT', label: 'Apartment' },
+  { value: 'PENTHOUSE', label: 'Penthouse' },
+  { value: 'CONDO', label: 'Condo' },
+  { value: 'LUXURY', label: 'Luxury' },
 ];
 
 const landSubTypes = [
-  { value: "RESIDENTIAL_PLOT", label: "Residential Plot" },
-  { value: "COMMERCIAL_LAND", label: "Commercial Land" },
-  { value: "AGRICULTURAL_LAND", label: "Agricultural Land" },
+  { value: 'RESIDENTIAL_PLOT', label: 'Residential Plot' },
+  { value: 'COMMERCIAL_LAND', label: 'Commercial Land' },
+  { value: 'AGRICULTURAL_LAND', label: 'Agricultural Land' },
+  { value: 'COLONY_LAND', label: 'Colony Land' },
+  { value: 'GUTHI_LAND', label: 'Guthi Land' },
 ];
 
 const areaUnits = [
-  { value: "SQ_FT", label: "Sq Ft" },
-  { value: "SQ_M", label: "Sq Meter" },
-  { value: "AANA", label: "Aana" },
-  { value: "ROPANI", label: "Ropani" },
+  { value: 'SQ_FT', label: 'Sq Ft' },
+  { value: 'SQ_M', label: 'Sq Meter' },
+  { value: 'AANA', label: 'Aana' },
+  { value: 'ROPANI', label: 'Ropani' },
+  { value: 'BIGHA', label: 'Bigha' },
+  { value: 'KATTHA', label: 'Kattha' },
+  { value: 'DHUR', label: 'Dhur' },
 ];
 
 const furnishingStatuses = [
-  { value: "UNFURNISHED", label: "Unfurnished" },
-  { value: "SEMI_FURNISHED", label: "Semi-Furnished" },
-  { value: "FULLY_FURNISHED", label: "Fully Furnished" },
+  { value: 'UNFURNISHED', label: 'Unfurnished' },
+  { value: 'SEMI_FURNISHED', label: 'Semi-Furnished' },
+  { value: 'FULLY_FURNISHED', label: 'Fully Furnished' },
 ];
 
 const facingDirections = [
-  { value: "EAST", label: "East" },
-  { value: "WEST", label: "West" },
-  { value: "NORTH", label: "North" },
-  { value: "SOUTH", label: "South" },
-  { value: "NORTH_EAST", label: "North East" },
-  { value: "NORTH_WEST", label: "North West" },
-  { value: "SOUTH_EAST", label: "South East" },
-  { value: "SOUTH_WEST", label: "South West" },
+  { value: 'EAST', label: 'East' },
+  { value: 'WEST', label: 'West' },
+  { value: 'NORTH', label: 'North' },
+  { value: 'SOUTH', label: 'South' },
+  { value: 'NORTH_EAST', label: 'North East' },
+  { value: 'NORTH_WEST', label: 'North West' },
+  { value: 'SOUTH_EAST', label: 'South East' },
+  { value: 'SOUTH_WEST', label: 'South West' },
+];
+
+const roadTypes = [
+  { value: 'PITCHED', label: 'Pitched (Blacktop)' },
+  { value: 'CONCRETE', label: 'Concrete' },
+  { value: 'GRAVEL', label: 'Gravel' },
+  { value: 'UNDER_CONSTRUCTION', label: 'Under Construction' },
+  { value: 'NONE', label: 'None' },
+];
+
+const serviceNearbyTypes = [
+  { value: 'SCHOOL', label: 'School' },
+  { value: 'HOSPITAL', label: 'Hospital' },
+  { value: 'PHARMACY', label: 'Pharmacy' },
+  { value: 'SUPERMARKET', label: 'Supermarket' },
+  { value: 'PARK', label: 'Park' },
+  { value: 'TEMPLE', label: 'Temple' },
+  { value: 'MOSQUE', label: 'Mosque' },
+  { value: 'CHURCH', label: 'Church' },
+  { value: 'GYM', label: 'Gym' },
+  { value: 'RESTAURANT', label: 'Restaurant' },
+  { value: 'BANK', label: 'Bank' },
+  { value: 'ATM', label: 'ATM' },
+  { value: 'GAS_STATION', label: 'Gas Station' },
+  { value: 'BUS_STOP', label: 'Bus Stop' },
+  { value: 'AIRPORT', label: 'Airport' },
+  { value: 'OTHER', label: 'Other' },
 ];
 
 const currencies = [
-  { value: "NPR", label: "NPR" },
-  { value: "USD", label: "USD" },
+  { value: 'NPR', label: 'NPR' },
+  { value: 'USD', label: 'USD' },
 ];
 
 const badgeTones = [
-  { value: "NEUTRAL", label: "Neutral" },
-  { value: "WARM", label: "Warm" },
-  { value: "COOL", label: "Cool" },
+  { value: 'NEUTRAL', label: 'Neutral' },
+  { value: 'WARM', label: 'Warm' },
+  { value: 'COOL', label: 'Cool' },
 ];
 
 const getVideoEmbedUrl = (url: string): string | null => {
   if (!url) return null;
   const youtubeMatch = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
   );
   if (youtubeMatch) {
     return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
   }
-  if (url.includes("player.vimeo.com")) {
+  if (url.includes('player.vimeo.com')) {
     return url;
   }
   return null;
@@ -112,52 +150,59 @@ const getVideoEmbedUrl = (url: string): string | null => {
 export default function CreatePropertyPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [propertyType, setPropertyType] = useState<string>("HOUSE");
-  const [listingType, setListingType] = useState<string>("SALE");
+  const [propertyType, setPropertyType] = useState<string>('HOUSE');
+  const [listingType, setListingType] = useState<string>('SALE');
   const [images, setImages] = useState<File[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [servicesNearby, setServicesNearby] = useState<
+    { serviceType: string; name: string }[]
+  >([]);
   const [seoData, setSeoData] = useState<any>({});
   const { data: amenitiesData } = useAmenities();
   const amenities = amenitiesData?.data || [];
   const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    summary: "",
-    description: "",
-    locationText: "",
-    district: "",
-    city: "",
+    title: '',
+    slug: '',
+    summary: '',
+    description: '',
+    locationText: '',
+    district: '',
+    city: '',
     latitude: 0,
     longitude: 0,
+    propertyCode: '',
     priceAmount: 0,
-    currency: "NPR",
-    pricePeriod: "TOTAL",
-    status: "DRAFT",
+    currency: 'NPR',
+    pricePeriod: 'TOTAL',
+    status: 'DRAFT',
     isFeatured: false,
-    badgeLabel: "",
-    badgeTone: "NEUTRAL",
+    badgeLabel: '',
+    badgeTone: 'NEUTRAL',
     areaValue: 0,
-    areaUnit: "SQ_FT",
-    titleStatus: "Clear Lal Purja",
-    waterAvailability: "",
-    electricity: "",
+    areaUnit: 'SQ_FT',
+    titleStatus: 'Clear Lal Purja',
+    waterAvailability: '',
+    electricity: '',
     isVerified: false,
     isOwnerApproved: false,
-    videoUrl: "",
-    mapIframe: "",
+    videoUrl: '',
+    mapIframe: '',
     houseDetails: {
-      subType: "VILLA",
-      usageType: "RESIDENTIAL",
+      subType: 'VILLA',
+      usageType: 'RESIDENTIAL',
       bedrooms: 0,
       bathrooms: 0,
       kitchens: 0,
       floors: 0,
       parkingSpaces: 0,
-      furnishingStatus: "SEMI_FURNISHED",
+      furnishingStatus: 'SEMI_FURNISHED',
       buildYear: 0,
+      facingDirection: 'EAST',
+      roadType: 'PITCHED',
+      roadSize: 0,
     },
     apartmentDetails: {
-      subType: "APARTMENT",
+      subType: 'APARTMENT',
       bedrooms: 0,
       bathrooms: 0,
       balconies: 0,
@@ -165,16 +210,20 @@ export default function CreatePropertyPage() {
       totalFloors: 0,
       hasLift: false,
       hasParking: false,
-      furnishingStatus: "SEMI_FURNISHED",
+      furnishingStatus: 'SEMI_FURNISHED',
+      facingDirection: 'EAST',
+      roadType: 'PITCHED',
+      roadSize: 0,
     },
     landDetails: {
-      subType: "RESIDENTIAL_PLOT",
+      subType: 'RESIDENTIAL_PLOT',
       roadAccessFeet: 0,
       frontageFeet: 0,
-      facingDirection: "EAST",
-      plotShape: "",
-      zoningType: "",
+      facingDirection: 'EAST',
+      plotShape: '',
+      zoningType: '',
       isCornerPlot: false,
+      roadType: 'PITCHED',
     },
   });
 
@@ -183,9 +232,9 @@ export default function CreatePropertyPage() {
     setIsLoading(true);
     try {
       const details =
-        propertyType === "HOUSE"
+        propertyType === 'HOUSE'
           ? formData.houseDetails
-          : propertyType === "APARTMENT"
+          : propertyType === 'APARTMENT'
             ? formData.apartmentDetails
             : formData.landDetails;
 
@@ -199,31 +248,32 @@ export default function CreatePropertyPage() {
         longitude: formData.longitude ? Number(formData.longitude) : null,
         details,
         amenityIds: selectedAmenities,
+        servicesNearby,
         seo: seoData,
       };
 
       const formDataToSend = new FormData();
-      formDataToSend.append("data", JSON.stringify(dataToSubmit));
+      formDataToSend.append('data', JSON.stringify(dataToSubmit));
 
       images.forEach((image) => {
-        formDataToSend.append("images", image);
+        formDataToSend.append('images', image);
       });
 
       const res = await propertyCrud.authFetch(`${API_URL}/api/properties`, {
-        method: "POST",
+        method: 'POST',
         body: formDataToSend,
       });
 
       const result = await res.json();
 
       if (!res.ok || !result.success) {
-        throw new Error(result.message || "Failed to create property");
+        throw new Error(result.message || 'Failed to create property');
       }
 
-      toast.success("Property created successfully");
-      router.push("/properties");
+      toast.success('Property created successfully');
+      router.push('/properties');
     } catch (error: any) {
-      toast.error(error.message || "Failed to create property");
+      toast.error(error.message || 'Failed to create property');
     } finally {
       setIsLoading(false);
     }
@@ -294,8 +344,8 @@ export default function CreatePropertyPage() {
                   const newTitle = e.target.value;
                   const newSlug = newTitle
                     .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, "-")
-                    .replace(/(^-|-$)/g, "");
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/(^-|-$)/g, '');
                   setFormData({ ...formData, title: newTitle, slug: newSlug });
                 }}
                 placeholder="Property title"
@@ -312,6 +362,18 @@ export default function CreatePropertyPage() {
                 }
                 placeholder="property-url-slug"
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Property Code</Label>
+              <Input
+                value={formData.propertyCode}
+                onChange={(e) =>
+                  setFormData({ ...formData, propertyCode: e.target.value })
+                }
+                placeholder="e.g. YC-001"
+                maxLength={8}
               />
             </div>
 
@@ -482,7 +544,7 @@ export default function CreatePropertyPage() {
               />
             </div>
 
-            {propertyType === "LAND" && (
+            {propertyType === 'LAND' && (
               <div className="space-y-2">
                 <Label>Facing Direction</Label>
                 <Select
@@ -519,7 +581,8 @@ export default function CreatePropertyPage() {
               <Label>Price Amount</Label>
               <Input
                 type="number"
-                value={formData.priceAmount}
+                step="any"
+                value={formData.priceAmount || ''}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -573,50 +636,47 @@ export default function CreatePropertyPage() {
               </Select>
             </div>
 
-            {propertyType !== "LAND" && (
-              <>
-                <div className="space-y-2">
-                  <Label>Area Value</Label>
-                  <Input
-                    type="number"
-                    value={formData.areaValue}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        areaValue: Number(e.target.value),
-                      })
-                    }
-                    placeholder="0"
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label>Area Value</Label>
+              <Input
+                type="number"
+                step="any"
+                value={formData.areaValue || ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    areaValue: Number(e.target.value),
+                  })
+                }
+                placeholder="0"
+              />
+            </div>
 
-                <div className="space-y-2">
-                  <Label>Area Unit</Label>
-                  <Select
-                    value={formData.areaUnit}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, areaUnit: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {areaUnits.map((unit) => (
-                        <SelectItem key={unit.value} value={unit.value}>
-                          {unit.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
+            <div className="space-y-2">
+              <Label>Area Unit</Label>
+              <Select
+                value={formData.areaUnit}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, areaUnit: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {areaUnits.map((unit) => (
+                    <SelectItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </TabsContent>
 
         <TabsContent value="details" className="space-y-4">
-          {propertyType === "HOUSE" && (
+          {propertyType === 'HOUSE' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>House Type</Label>
@@ -649,7 +709,8 @@ export default function CreatePropertyPage() {
                 <Label>Bedrooms</Label>
                 <Input
                   type="number"
-                  value={formData.houseDetails?.bedrooms}
+                  step="any"
+                  value={formData.houseDetails?.bedrooms || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -666,7 +727,8 @@ export default function CreatePropertyPage() {
                 <Label>Bathrooms</Label>
                 <Input
                   type="number"
-                  value={formData.houseDetails?.bathrooms}
+                  step="any"
+                  value={formData.houseDetails?.bathrooms || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -683,7 +745,8 @@ export default function CreatePropertyPage() {
                 <Label>Kitchens</Label>
                 <Input
                   type="number"
-                  value={formData.houseDetails?.kitchens}
+                  step="any"
+                  value={formData.houseDetails?.kitchens || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -700,7 +763,8 @@ export default function CreatePropertyPage() {
                 <Label>Floors</Label>
                 <Input
                   type="number"
-                  value={formData.houseDetails?.floors}
+                  step="any"
+                  value={formData.houseDetails?.floors || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -717,7 +781,8 @@ export default function CreatePropertyPage() {
                 <Label>Parking Spaces</Label>
                 <Input
                   type="number"
-                  value={formData.houseDetails?.parkingSpaces}
+                  step="any"
+                  value={formData.houseDetails?.parkingSpaces || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -734,7 +799,8 @@ export default function CreatePropertyPage() {
                 <Label>Build Year</Label>
                 <Input
                   type="number"
-                  value={formData.houseDetails?.buildYear}
+                  step="any"
+                  value={formData.houseDetails?.buildYear || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -773,6 +839,79 @@ export default function CreatePropertyPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label>Facing Direction</Label>
+                <Select
+                  value={formData.houseDetails?.facingDirection}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      houseDetails: {
+                        ...formData.houseDetails,
+                        facingDirection: value,
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facingDirections.map((dir) => (
+                      <SelectItem key={dir.value} value={dir.value}>
+                        {dir.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Road Type</Label>
+                <Select
+                  value={formData.houseDetails?.roadType}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      houseDetails: {
+                        ...formData.houseDetails,
+                        roadType: value,
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roadTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Road Size (ft)</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.houseDetails?.roadSize || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      houseDetails: {
+                        ...formData.houseDetails,
+                        roadSize: Number(e.target.value),
+                      },
+                    })
+                  }
+                  placeholder="e.g. 20"
+                />
+              </div>
             </div>
           )}
 
@@ -782,7 +921,10 @@ export default function CreatePropertyPage() {
               <Input
                 value={formData.waterAvailability}
                 onChange={(e) =>
-                  setFormData({ ...formData, waterAvailability: e.target.value })
+                  setFormData({
+                    ...formData,
+                    waterAvailability: e.target.value,
+                  })
                 }
                 placeholder="e.g. 24/7 Supply, Well, Melamchi"
               />
@@ -799,36 +941,47 @@ export default function CreatePropertyPage() {
             </div>
           </div>
 
-          {(propertyType === "HOUSE" || propertyType === "APARTMENT") && amenities.length > 0 && (
-            <div className="mt-6">
-              <Label className="mb-2 block">Amenities</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 rounded-md border border-border/60 p-4">
-                {amenities.map((amenity: any) => (
-                  <div key={amenity.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`amenity-${amenity.id}`}
-                      checked={selectedAmenities.includes(amenity.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedAmenities([...selectedAmenities, amenity.id]);
-                        } else {
-                          setSelectedAmenities(selectedAmenities.filter(id => id !== amenity.id));
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`amenity-${amenity.id}`}
-                      className="text-sm cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          {(propertyType === 'HOUSE' || propertyType === 'APARTMENT') &&
+            amenities.length > 0 && (
+              <div className="mt-6">
+                <Label className="mb-2 block">Amenities</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 rounded-md border border-border/60 p-4">
+                  {amenities.map((amenity: any) => (
+                    <div
+                      key={amenity.id}
+                      className="flex items-center space-x-2"
                     >
-                      {amenity.name}
-                    </label>
-                  </div>
-                ))}
+                      <Checkbox
+                        id={`amenity-${amenity.id}`}
+                        checked={selectedAmenities.includes(amenity.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedAmenities([
+                              ...selectedAmenities,
+                              amenity.id,
+                            ]);
+                          } else {
+                            setSelectedAmenities(
+                              selectedAmenities.filter(
+                                (id) => id !== amenity.id,
+                              ),
+                            );
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`amenity-${amenity.id}`}
+                        className="text-sm cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {amenity.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {propertyType === "APARTMENT" && (
+          {propertyType === 'APARTMENT' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Apartment Type</Label>
@@ -861,7 +1014,8 @@ export default function CreatePropertyPage() {
                 <Label>Bedrooms</Label>
                 <Input
                   type="number"
-                  value={formData.apartmentDetails?.bedrooms}
+                  step="any"
+                  value={formData.apartmentDetails?.bedrooms || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -878,7 +1032,8 @@ export default function CreatePropertyPage() {
                 <Label>Bathrooms</Label>
                 <Input
                   type="number"
-                  value={formData.apartmentDetails?.bathrooms}
+                  step="any"
+                  value={formData.apartmentDetails?.bathrooms || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -895,7 +1050,8 @@ export default function CreatePropertyPage() {
                 <Label>Floor Number</Label>
                 <Input
                   type="number"
-                  value={formData.apartmentDetails?.floorNumber}
+                  step="any"
+                  value={formData.apartmentDetails?.floorNumber || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -934,10 +1090,83 @@ export default function CreatePropertyPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label>Facing Direction</Label>
+                <Select
+                  value={formData.apartmentDetails?.facingDirection}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      apartmentDetails: {
+                        ...formData.apartmentDetails,
+                        facingDirection: value,
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facingDirections.map((dir) => (
+                      <SelectItem key={dir.value} value={dir.value}>
+                        {dir.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Road Type</Label>
+                <Select
+                  value={formData.apartmentDetails?.roadType}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      apartmentDetails: {
+                        ...formData.apartmentDetails,
+                        roadType: value,
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roadTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Road Size (ft)</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.apartmentDetails?.roadSize || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      apartmentDetails: {
+                        ...formData.apartmentDetails,
+                        roadSize: Number(e.target.value),
+                      },
+                    })
+                  }
+                  placeholder="e.g. 20"
+                />
+              </div>
             </div>
           )}
 
-          {propertyType === "LAND" && (
+          {propertyType === 'LAND' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Land Type</Label>
@@ -967,7 +1196,8 @@ export default function CreatePropertyPage() {
                 <Label>Road Access (feet)</Label>
                 <Input
                   type="number"
-                  value={formData.landDetails?.roadAccessFeet}
+                  step="any"
+                  value={formData.landDetails?.roadAccessFeet || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -984,7 +1214,8 @@ export default function CreatePropertyPage() {
                 <Label>Frontage (feet)</Label>
                 <Input
                   type="number"
-                  value={formData.landDetails?.frontageFeet}
+                  step="any"
+                  value={formData.landDetails?.frontageFeet || ''}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
@@ -996,8 +1227,122 @@ export default function CreatePropertyPage() {
                   }
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label>Plot Shape</Label>
+                <Input
+                  value={formData.landDetails?.plotShape || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      landDetails: {
+                        ...formData.landDetails,
+                        plotShape: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="e.g. Rectangular, Square"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Zoning Type</Label>
+                <Input
+                  value={formData.landDetails?.zoningType || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      landDetails: {
+                        ...formData.landDetails,
+                        zoningType: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="e.g. Residential, Commercial"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 pt-6">
+                <Switch
+                  checked={formData.landDetails?.isCornerPlot || false}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      landDetails: {
+                        ...formData.landDetails,
+                        isCornerPlot: checked,
+                      },
+                    })
+                  }
+                />
+                <Label>Corner Plot</Label>
+              </div>
             </div>
           )}
+
+          <div className="mt-6">
+            <Label className="mb-2 block">Services Nearby</Label>
+            <div className="space-y-3 rounded-md border border-border/60 p-4">
+              {servicesNearby.map((service, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <Select
+                    value={service.serviceType}
+                    onValueChange={(value) => {
+                      const updated = [...servicesNearby];
+                      updated[index].serviceType = value;
+                      setServicesNearby(updated);
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {serviceNearbyTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    value={service.name}
+                    onChange={(e) => {
+                      const updated = [...servicesNearby];
+                      updated[index].name = e.target.value;
+                      setServicesNearby(updated);
+                    }}
+                    placeholder="e.g. Grande Hospital"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() =>
+                      setServicesNearby(
+                        servicesNearby.filter((_, i) => i !== index),
+                      )
+                    }
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setServicesNearby([
+                    ...servicesNearby,
+                    { serviceType: 'SCHOOL', name: '' },
+                  ])
+                }
+              >
+                + Add Service
+              </Button>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="media" className="space-y-4">
@@ -1068,7 +1413,11 @@ export default function CreatePropertyPage() {
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-4">
-          <SeoMetadataForm seo={seoData} onChange={setSeoData} baseSlug={formData.slug} />
+          <SeoMetadataForm
+            seo={seoData}
+            onChange={setSeoData}
+            baseSlug={formData.slug}
+          />
         </TabsContent>
       </Tabs>
 
@@ -1077,7 +1426,7 @@ export default function CreatePropertyPage() {
           Cancel
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Creating..." : "Create Property"}
+          {isLoading ? 'Creating...' : 'Create Property'}
         </Button>
       </div>
     </form>

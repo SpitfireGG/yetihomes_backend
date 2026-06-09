@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/ui/app-sidebar";
 import Header from "@/components/partials/Header";
 import { BreadCrumb } from "@/components/common/bread-crumb-navigation";
 import { ErrorBoundary } from "@/components/common/error-boundary";
+import { AuthGuard } from "@/components/common/auth-guard";
 
 export const metadata: Metadata = {
     title: "Admin | Yeti Homes",
@@ -18,7 +19,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <Header />
                 <BreadCrumb />
                 <ErrorBoundary>
-                    {children}
+                    <AuthGuard>
+                        {children}
+                    </AuthGuard>
                 </ErrorBoundary>
             </main>
         </SidebarProvider>

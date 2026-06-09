@@ -37,7 +37,6 @@ export default function TinymceEditor({ value, onChange }: Props) {
           'lists',
           'link',
           'image',
-          // 'imagetools',
           'charmap',
           'preview',
           'anchor',

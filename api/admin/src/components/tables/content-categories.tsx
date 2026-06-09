@@ -31,7 +31,6 @@ export default function ContentCategoriesTable() {
         return matchesSearch
     })
 
-    // Sort customers
     const sortedCustomers = [...filteredCustomers].sort((a, b) => {
         switch (sortBy) {
             case "name-asc":

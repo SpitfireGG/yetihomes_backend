@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
@@ -11,22 +11,20 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { TextAreaInput } from "@/components/common/Inputs";
-import { PreviewImage } from "@/components/common/image";
-import { CRUD } from "@/api/crud";
-import { TeamMember, TeamMemberFormData } from "@/@types/company/team";
-import { SeoMetadataForm } from "@/components/seo/seo-metadata-form";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { TextAreaInput } from '@/components/common/Inputs';
+import { PreviewImage } from '@/components/common/image';
+import { CRUD } from '@/api/crud';
+import { TeamMember, TeamMemberFormData } from '@/@types/company/team';
 
-const teamApi = new CRUD("api/teams");
+const teamApi = new CRUD('api/teams');
 
 type Props = {
     teamId: string;
     data: TeamMember;
-}
+};
 
 export const EditTeamDialog = ({ teamId, data }: Props) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -34,43 +32,49 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
     const [formData, setFormData] = useState<TeamMemberFormData>({
         name: data.name,
         role: data.role,
-        location: data.location || "",
+        location: data.location || '',
         email: data.email,
         bio: data.bio,
         expertise: data.expertise || [],
-        education: data.education || "",
+        phone: data.phone || '',
         thumbnail: data.thumbnail,
         image: data.image,
     });
 
-    const [expertiseInput, setExpertiseInput] = useState("");
+    const [expertiseInput, setExpertiseInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [seoData, setSeoData] = useState<any>({});
 
-    useEffect(() => {
-        if (isOpen) {
-            setFormData({
-                name: data.name,
-                role: data.role,
-                location: data.location || "",
-                email: data.email,
-                bio: data.bio,
-                expertise: data.expertise || [],
-                education: data.education || "",
-                thumbnail: data.thumbnail,
-                image: data.image,
-            });
-        }
-    }, [isOpen, data]);
+    const resetForm = () => {
+        setFormData({
+            name: data.name,
+            role: data.role,
+            location: data.location || '',
+            email: data.email,
+            bio: data.bio,
+            expertise: data.expertise || [],
+            phone: data.phone || '',
+            thumbnail: data.thumbnail,
+            image: data.image,
+        });
+        setExpertiseInput('');
+    };
+
+    const handleOpenChange = (open: boolean) => {
+        setIsOpen(open);
+        if (open) resetForm();
+    };
 
     const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: "thumbnail" | "image") => {
+    const handleImageChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+        field: 'thumbnail' | 'image',
+    ) => {
         const file = e.target.files?.[0] ?? null;
         setFormData((prev) => ({ ...prev, [field]: file }));
     };
@@ -81,7 +85,7 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
                 ...prev,
                 expertise: [...prev.expertise, expertiseInput.trim()],
             }));
-            setExpertiseInput("");
+            setExpertiseInput('');
         }
     };
 
@@ -96,17 +100,18 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
         e.preventDefault();
 
         if (!formData.name || !formData.role || !formData.email) {
-            toast.error("Please fill in required fields");
+            toast.error('Please fill in required fields');
             return;
         }
 
         setIsLoading(true);
         try {
-            const result = await teamApi.update({ ...formData, seo: seoData }, teamId);
-            toast.success(result.message || "Team member updated successfully");
+            const result = await teamApi.update(formData, teamId);
+            toast.success(result.message || 'Team member updated successfully');
             setIsOpen(false);
         } catch (error) {
-            const msg = error instanceof Error ? error.message : "Something went wrong";
+            const msg =
+                error instanceof Error ? error.message : 'Something went wrong';
             toast.error(msg);
         } finally {
             setIsLoading(false);
@@ -114,7 +119,7 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger className="p-2 w-full text-left text-sm hover:bg-muted/50 rounded">
                 Edit
             </DialogTrigger>
@@ -187,13 +192,13 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="education">Education</Label>
+                        <Label htmlFor="phone">Phone Number</Label>
                         <Input
-                            id="education"
-                            name="education"
-                            value={formData.education}
+                            id="phone"
+                            name="phone"
+                            value={formData.phone || ''}
                             onChange={handleInputChange}
-                            placeholder="Enter education"
+                            placeholder="e.g. +977 9851446901"
                         />
                     </div>
 
@@ -202,16 +207,22 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
                         <div className="flex gap-2">
                             <Input
                                 value={expertiseInput}
-                                onChange={(e) => setExpertiseInput(e.target.value)}
+                                onChange={(e) =>
+                                    setExpertiseInput(e.target.value)
+                                }
                                 placeholder="Add expertise"
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
+                                    if (e.key === 'Enter') {
                                         e.preventDefault();
                                         handleAddExpertise();
                                     }
                                 }}
                             />
-                            <Button type="button" onClick={handleAddExpertise} variant="secondary">
+                            <Button
+                                type="button"
+                                onClick={handleAddExpertise}
+                                variant="secondary"
+                            >
                                 Add
                             </Button>
                         </div>
@@ -224,7 +235,9 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
                                     {exp}
                                     <button
                                         type="button"
-                                        onClick={() => handleRemoveExpertise(index)}
+                                        onClick={() =>
+                                            handleRemoveExpertise(index)
+                                        }
                                         className="text-muted-foreground hover:text-foreground"
                                     >
                                         ×
@@ -240,10 +253,20 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
                             <Input
                                 type="file"
                                 accept="image/jpeg,image/png,image/jpg,image/webp"
-                                onChange={(e) => handleImageChange(e, "thumbnail")}
+                                onChange={(e) =>
+                                    handleImageChange(e, 'thumbnail')
+                                }
                             />
                             {formData.thumbnail && (
-                                <PreviewImage url={formData.thumbnail instanceof File ? URL.createObjectURL(formData.thumbnail) : formData.thumbnail as string} />
+                                <PreviewImage
+                                    url={
+                                        formData.thumbnail instanceof File
+                                            ? URL.createObjectURL(
+                                                  formData.thumbnail,
+                                              )
+                                            : (formData.thumbnail as string)
+                                    }
+                                />
                             )}
                         </div>
                         <div className="space-y-2">
@@ -251,16 +274,21 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
                             <Input
                                 type="file"
                                 accept="image/jpeg,image/png,image/jpg,image/webp"
-                                onChange={(e) => handleImageChange(e, "image")}
+                                onChange={(e) => handleImageChange(e, 'image')}
                             />
                             {formData.image && (
-                                <PreviewImage url={formData.image instanceof File ? URL.createObjectURL(formData.image) : formData.image as string} />
+                                <PreviewImage
+                                    url={
+                                        formData.image instanceof File
+                                            ? URL.createObjectURL(
+                                                  formData.image,
+                                              )
+                                            : (formData.image as string)
+                                    }
+                                />
                             )}
                         </div>
                     </div>
-
-                    <Separator className="my-4" />
-                    <SeoMetadataForm seo={seoData} onChange={setSeoData} baseSlug={formData.name} />
 
                     <DialogFooter>
                         <DialogClose asChild>
@@ -270,9 +298,14 @@ export const EditTeamDialog = ({ teamId, data }: Props) => {
                         </DialogClose>
                         <Button
                             type="submit"
-                            disabled={!formData.name || !formData.role || !formData.email || isLoading}
+                            disabled={
+                                !formData.name ||
+                                !formData.role ||
+                                !formData.email ||
+                                isLoading
+                            }
                         >
-                            {isLoading ? "Saving..." : "Save Changes"}
+                            {isLoading ? 'Saving...' : 'Save Changes'}
                         </Button>
                     </DialogFooter>
                 </form>

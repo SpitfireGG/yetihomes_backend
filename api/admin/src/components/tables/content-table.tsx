@@ -65,7 +65,6 @@ export default function ContentTable() {
         return matchesSearch && matchesStatus
     })
 
-    // Sort customers
     const sortedCustomers = [...filteredTrips].sort((a, b) => {
         switch (sortBy) {
             case "name-asc":

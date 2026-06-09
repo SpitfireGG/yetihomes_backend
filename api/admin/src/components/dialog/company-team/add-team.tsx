@@ -33,7 +33,7 @@ export const AddTeamDialog = () => {
         email: "",
         bio: "",
         expertise: [],
-        education: "",
+        phone: "",
         thumbnail: null,
         image: null,
     });
@@ -88,7 +88,7 @@ export const AddTeamDialog = () => {
                 email: "",
                 bio: "",
                 expertise: [],
-                education: "",
+                phone: "",
                 thumbnail: null,
                 image: null,
             });
@@ -175,13 +175,13 @@ export const AddTeamDialog = () => {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="education">Education</Label>
+                        <Label htmlFor="phone">Phone Number</Label>
                         <Input
-                            id="education"
-                            name="education"
-                            value={formData.education}
+                            id="phone"
+                            name="phone"
+                            value={formData.phone || ''}
                             onChange={handleInputChange}
-                            placeholder="Enter education"
+                            placeholder="e.g. +977 9851446901"
                         />
                     </div>
 

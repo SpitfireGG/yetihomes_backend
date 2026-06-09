@@ -8,7 +8,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Search, ArrowUpDown, MoreHorizontal } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import DeleteDialog from "../dialog/_common/delete"
-import { useCompanyGetGuide, useCompanyLegalDocuments, useGetTripHighlights } from "@/hooks/useTankstack-query"
+import { useCompanyGetGuide, useCompanyLegalDocuments } from "@/hooks/useTankstack-query"
 import { AddTeamDialog } from "../dialog/company-team/add-team"
 import { AddTrekGuideDialog } from "../dialog/company-guide/add-guide"
 import TableSkeleton from "../common/table-skeleton"

@@ -57,7 +57,10 @@ export default function CreateAgentPage() {
             value={formData.name}
             onChange={(e) => {
               const name = e.target.value;
-              const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+              const slug = name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
               setFormData({ ...formData, name, slug });
             }}
             placeholder="John Doe"
@@ -77,7 +80,9 @@ export default function CreateAgentPage() {
           <Input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
             placeholder="john@example.com"
           />
         </div>
@@ -85,7 +90,9 @@ export default function CreateAgentPage() {
           <Label>Phone</Label>
           <Input
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, phone: e.target.value })
+            }
             placeholder="+977 9800000000"
           />
         </div>
@@ -93,38 +100,51 @@ export default function CreateAgentPage() {
           <Label>License Number</Label>
           <Input
             value={formData.licenseNumber}
-            onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, licenseNumber: e.target.value })
+            }
             placeholder="LIC-12345"
           />
         </div>
         <div className="space-y-2">
           <Label>Experience (Years)</Label>
           <Input
-            type="number"
-            value={formData.experienceYears}
-            onChange={(e) => setFormData({ ...formData, experienceYears: Number(e.target.value) })}
+            type="number" step="any"
+            value={formData.experienceYears || ''}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                experienceYears: Number(e.target.value),
+              })
+            }
           />
         </div>
         <div className="space-y-2">
           <Label>Photo URL</Label>
           <Input
             value={formData.photoUrl}
-            onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, photoUrl: e.target.value })
+            }
             placeholder="https://example.com/photo.jpg"
           />
         </div>
         <div className="space-y-2">
           <Label>Display Order</Label>
           <Input
-            type="number"
-            value={formData.displayOrder}
-            onChange={(e) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
+            type="number" step="any"
+            value={formData.displayOrder || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, displayOrder: Number(e.target.value) })
+            }
           />
         </div>
         <div className="flex items-center space-x-2">
           <Switch
             checked={formData.isActive}
-            onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+            onCheckedChange={(checked) =>
+              setFormData({ ...formData, isActive: checked })
+            }
           />
           <Label>Active</Label>
         </div>
@@ -143,8 +163,12 @@ export default function CreateAgentPage() {
       <SeoMetadataForm seo={seo} onChange={setSeo} baseSlug={formData.slug} />
 
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Agent'}</Button>
+        <Button type="button" variant="outline" onClick={() => router.back()}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating...' : 'Create Agent'}
+        </Button>
       </div>
     </form>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,22 +39,30 @@ export default function AmenitiesPage() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchAmenities = async () => {
+  const fetchAmenities = useCallback(async (signal?: AbortSignal) => {
     try {
       setIsLoading(true);
       const result = await amenitiesCrud.getData();
-      setAmenities(result.data || []);
-      setError(null);
+      if (!signal?.aborted) {
+        setAmenities(result.data || []);
+        setError(null);
+      }
     } catch (err) {
-      setError('Failed to fetch amenities');
+      if (!signal?.aborted) {
+        setError('Failed to fetch amenities');
+      }
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchAmenities();
-  }, []);
+    const controller = new AbortController();
+    fetchAmenities(controller.signal);
+    return () => controller.abort();
+  }, [fetchAmenities]);
 
   const filteredAmenities = amenities.filter((a) =>
     a.name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -81,7 +89,7 @@ export default function AmenitiesPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <p className="text-red-500">{error}</p>
-        <Button onClick={fetchAmenities} className="mt-4">
+        <Button onClick={() => fetchAmenities()} className="mt-4">
           Retry
         </Button>
       </div>

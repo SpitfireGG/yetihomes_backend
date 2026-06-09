@@ -88,7 +88,6 @@ const page = () => {
                 try {
                     JSON.parse(value); // validate only
                 } catch {
-                    // show validation error if you want
                     return;
                 }
             }

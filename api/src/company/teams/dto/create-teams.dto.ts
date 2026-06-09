@@ -40,7 +40,7 @@ export class CreateTeamMemberDto {
   @IsNotEmpty()
   expertise: string[];
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  education: string;
+  phone?: string;
 }

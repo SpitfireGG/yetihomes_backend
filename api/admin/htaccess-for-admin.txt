@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /
+
+# Static export fallback for property edit deep links.
+# Keeps /properties/edit/<uuid> in the browser while serving the static edit page.
+RewriteRule ^properties/edit/[^/]+/?$ /properties/edit/index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]

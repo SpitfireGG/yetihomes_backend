@@ -70,7 +70,6 @@ const page = () => {
         });
     }, [aboutUsData]);
 
-    // if (isLoading) return <Spinner />;
     if (!aboutUsData) return null;
 
     const handelSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -121,7 +120,6 @@ const page = () => {
                 try {
                     JSON.parse(value); // validate only
                 } catch {
-                    // show validation error if you want
                     return;
                 }
             }

@@ -94,7 +94,7 @@ export default function Page() {
         return <TableSkeleton />
     }
 
-    if (isError) (<div>Error...</div>)
+    if (isError) return <div>Error loading users.</div>;
 
 
     const filteredUsers = users.filter((user) => {
@@ -110,7 +110,6 @@ export default function Page() {
         return matchesSearch && matchesStatus
     })
 
-    // Sort customers
     const sortedUsers = [...filteredUsers].sort((a, b) => {
         switch (sortBy) {
             case "name-asc":
@@ -129,6 +128,18 @@ export default function Page() {
                 return a.name.localeCompare(b.name)
         }
     })
+
+    const ITEMS_PER_PAGE = 10;
+    const [page, setPage] = useState(1);
+    const totalPages = Math.ceil(sortedUsers.length / ITEMS_PER_PAGE);
+    const paginatedUsers = sortedUsers.slice(
+      (page - 1) * ITEMS_PER_PAGE,
+      page * ITEMS_PER_PAGE,
+    );
+
+    useEffect(() => {
+      setPage(1);
+    }, [searchQuery, statusFilter, sortBy]);
 
     return (
         <div className="space-y-6 p-4 border rounded-md mt-2">
@@ -198,8 +209,8 @@ export default function Page() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {sortedUsers.length > 0 ? (
-                            sortedUsers.splice(0, 6).map((user) => (
+                        {paginatedUsers.length > 0 ? (
+                            paginatedUsers.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
@@ -276,32 +287,49 @@ export default function Page() {
                 </Table>
             </div>
 
-            <div className="mt-4">
+            {totalPages > 1 && (
+              <div className="mt-4">
                 <Pagination>
-                    <PaginationContent>
-                        <PaginationItem>
-                            <PaginationPrevious href="#" />
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 7) {
+                        pageNum = i + 1;
+                      } else if (page <= 4) {
+                        pageNum = i + 1;
+                      } else if (page >= totalPages - 3) {
+                        pageNum = totalPages - 6 + i;
+                      } else {
+                        pageNum = page - 3 + i;
+                      }
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            isActive={page === pageNum}
+                            onClick={() => setPage(pageNum)}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
                         </PaginationItem>
-                        <PaginationItem>
-                            <PaginationLink href="#" isActive>
-                                1
-                            </PaginationLink>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationLink href="#">2</PaginationLink>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationLink href="#">3</PaginationLink>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationEllipsis />
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationNext href="#" />
-                        </PaginationItem>
-                    </PaginationContent>
+                      );
+                    })}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
                 </Pagination>
-            </div>
+              </div>
+            )}
 
         </div>
     )

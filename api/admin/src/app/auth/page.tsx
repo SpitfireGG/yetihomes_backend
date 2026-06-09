@@ -1,12 +1,16 @@
-"use client"
-import { useRouter } from 'next/navigation'
+"use client";
 
-const page = () => {
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-  const route = useRouter()
-  return (
-    route.push('/auth/login')
-  )
-}
+const Page = () => {
+  const route = useRouter();
 
-export default page
+  useEffect(() => {
+    route.replace("/auth/login");
+  }, [route]);
+
+  return null;
+};
+
+export default Page;

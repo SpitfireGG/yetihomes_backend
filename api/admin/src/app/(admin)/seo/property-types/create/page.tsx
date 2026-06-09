@@ -11,7 +11,16 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { SeoMetadataForm } from '@/components/seo/seo-metadata-form';
 
-const propertyTypes = ['HOUSE', 'APARTMENT', 'LAND', 'COMMERCIAL', 'VILLA', 'PENTHOUSE', 'DUPLEX', 'BUNGALOW'];
+const propertyTypes = [
+  'HOUSE',
+  'APARTMENT',
+  'LAND',
+  'COMMERCIAL',
+  'VILLA',
+  'PENTHOUSE',
+  'DUPLEX',
+  'BUNGALOW',
+];
 const listingTypes = ['SALE', 'RENT'];
 
 export default function CreatePropertyTypePage() {
@@ -40,7 +49,10 @@ export default function CreatePropertyTypePage() {
         body: JSON.stringify({ ...formData, seo }),
       });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Failed to create property type page');
+      if (!res.ok)
+        throw new Error(
+          result.message || 'Failed to create property type page',
+        );
       toast.success('Property type page created successfully');
       router.push('/seo/property-types');
     } catch (error: any) {
@@ -59,7 +71,10 @@ export default function CreatePropertyTypePage() {
             value={formData.name}
             onChange={(e) => {
               const name = e.target.value;
-              const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+              const slug = name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
               setFormData({ ...formData, name, slug });
             }}
             placeholder="e.g., 3 Bedroom Houses"
@@ -79,10 +94,16 @@ export default function CreatePropertyTypePage() {
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={formData.propertyType}
-            onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, propertyType: e.target.value })
+            }
           >
             <option value="">Select property type</option>
-            {propertyTypes.map(t => <option key={t} value={t}>{t}</option>)}
+            {propertyTypes.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
           </select>
         </div>
         <div className="space-y-2">
@@ -90,40 +111,54 @@ export default function CreatePropertyTypePage() {
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={formData.listingType}
-            onChange={(e) => setFormData({ ...formData, listingType: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, listingType: e.target.value })
+            }
           >
             <option value="">Select listing type</option>
-            {listingTypes.map(t => <option key={t} value={t}>{t}</option>)}
+            {listingTypes.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
           </select>
         </div>
         <div className="space-y-2">
           <Label>Min Bedrooms</Label>
           <Input
-            type="number"
-            value={formData.minBedrooms}
-            onChange={(e) => setFormData({ ...formData, minBedrooms: Number(e.target.value) })}
+            type="number" step="any"
+            value={formData.minBedrooms || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, minBedrooms: Number(e.target.value) })
+            }
           />
         </div>
         <div className="space-y-2">
           <Label>Max Bedrooms</Label>
           <Input
-            type="number"
-            value={formData.maxBedrooms}
-            onChange={(e) => setFormData({ ...formData, maxBedrooms: Number(e.target.value) })}
+            type="number" step="any"
+            value={formData.maxBedrooms || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, maxBedrooms: Number(e.target.value) })
+            }
           />
         </div>
         <div className="space-y-2">
           <Label>Display Order</Label>
           <Input
-            type="number"
-            value={formData.displayOrder}
-            onChange={(e) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
+            type="number" step="any"
+            value={formData.displayOrder || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, displayOrder: Number(e.target.value) })
+            }
           />
         </div>
         <div className="flex items-center space-x-2">
           <Switch
             checked={formData.isActive}
-            onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+            onCheckedChange={(checked) =>
+              setFormData({ ...formData, isActive: checked })
+            }
           />
           <Label>Active</Label>
         </div>
@@ -132,7 +167,9 @@ export default function CreatePropertyTypePage() {
             label="Description"
             name="description"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             placeholder="Description for this property type page..."
             row={4}
           />
@@ -142,8 +179,12 @@ export default function CreatePropertyTypePage() {
       <SeoMetadataForm seo={seo} onChange={setSeo} baseSlug={formData.slug} />
 
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Property Type Page'}</Button>
+        <Button type="button" variant="outline" onClick={() => router.back()}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating...' : 'Create Property Type Page'}
+        </Button>
       </div>
     </form>
   );

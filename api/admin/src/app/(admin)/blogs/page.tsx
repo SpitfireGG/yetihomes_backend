@@ -2,18 +2,16 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -23,25 +21,21 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Star,
-} from 'lucide-react';
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { Search, Plus, Edit, Trash2, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import TableSkeleton from '@/components/common/table-skeleton';
 import { CRUD } from '@/api/crud';
+import { useBlogs } from '@/hooks/useTankstack-query';
 import { OptimizedImage } from '@/components/common/optimized-image';
 
 const blogCrud = new CRUD('api/blogs');
-
-const statusStyles: Record<string, string> = {
-  DRAFT: 'bg-muted text-muted-foreground border-transparent',
-  PUBLISHED:
-    'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900',
-};
 
 function FeaturedBadge({ isFeatured }: { isFeatured: boolean }) {
   if (!isFeatured) return null;
@@ -65,7 +59,6 @@ function BlogCard({
 }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -105,9 +98,9 @@ function BlogCard({
         <p className="text-sm text-muted-foreground truncate">{blog.excerpt}</p>
         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
           <span className="capitalize">{blog.category}</span>
-          <span>•</span>
+          <span>·</span>
           <span>{blog.author}</span>
-          <span>•</span>
+          <span>·</span>
           <span>{blog.readTime}</span>
         </div>
       </div>
@@ -150,7 +143,7 @@ function BlogCard({
               onClick={handleDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting…' : 'Delete article'}
+              {isDeleting ? 'Deleting\u2026' : 'Delete article'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -159,39 +152,23 @@ function BlogCard({
   );
 }
 
+const ITEMS_PER_PAGE = 12;
+
 export default function BlogsPage() {
-  const router = useRouter();
-  const [blogs, setBlogs] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, isError, refetch } = useBlogs();
+  const blogs = data?.data || [];
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-
-  const fetchBlogs = async () => {
-    try {
-      setIsLoading(true);
-      const result = await blogCrud.getData();
-      setBlogs(result.data || []);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch blogs');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useState(() => {
-    fetchBlogs();
-  });
+  const [page, setPage] = useState(1);
 
   const categories = useMemo(() => {
-    const cats = new Set(blogs.map((b) => b.category).filter(Boolean));
-    return Array.from(cats);
+    const cats = new Set(blogs.map((b: any) => b.category).filter(Boolean));
+    return Array.from(cats) as string[];
   }, [blogs]);
 
   const filteredBlogs = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    return blogs.filter((blog) => {
+    return blogs.filter((blog: any) => {
       const matchesSearch =
         !q ||
         blog.title?.toLowerCase().includes(q) ||
@@ -203,17 +180,23 @@ export default function BlogsPage() {
     });
   }, [blogs, searchQuery, categoryFilter]);
 
+  const totalPages = Math.ceil(filteredBlogs.length / ITEMS_PER_PAGE);
+  const paginatedBlogs = filteredBlogs.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE,
+  );
+
   const handleAction = () => {
-    fetchBlogs();
+    refetch();
   };
 
   if (isLoading) return <TableSkeleton />;
 
-  if (error) {
+  if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-red-500">{error}</p>
-        <Button onClick={fetchBlogs} className="mt-4">
+        <p className="text-red-500">Failed to load blogs</p>
+        <Button onClick={() => refetch()} className="mt-4">
           Retry
         </Button>
       </div>
@@ -244,23 +227,33 @@ export default function BlogsPage() {
           <Input
             placeholder="Search by title or author..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             className="h-9 pl-9 text-sm"
           />
         </div>
         {categories.length > 0 && (
-          <select
+          <Select
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+            onValueChange={(v) => {
+              setCategoryFilter(v);
+              setPage(1);
+            }}
           >
-            <option value="all">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[180px] h-9">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
       </div>
 
@@ -283,16 +276,65 @@ export default function BlogsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredBlogs.map((blog) => (
+          {paginatedBlogs.map((blog: any) => (
             <BlogCard key={blog.id} blog={blog} onAction={handleAction} />
           ))}
         </div>
       )}
 
       {filteredBlogs.length > 0 && (
-        <p className="border-t border-border/60 pt-4 text-center text-xs text-muted-foreground tabular-nums">
-          Showing {filteredBlogs.length} of {blogs.length} articles
-        </p>
+        <div className="flex flex-col items-center gap-3 border-t border-border/60 pt-4">
+          <p className="text-center text-xs text-muted-foreground tabular-nums">
+            Showing {paginatedBlogs.length} of {filteredBlogs.length} articles
+          </p>
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={
+                      page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+                    }
+                  />
+                </PaginationItem>
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 7) {
+                    pageNum = i + 1;
+                  } else if (page <= 4) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 3) {
+                    pageNum = totalPages - 6 + i;
+                  } else {
+                    pageNum = page - 3 + i;
+                  }
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        isActive={page === pageNum}
+                        onClick={() => setPage(pageNum)}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={
+                      page === totalPages
+                        ? 'pointer-events-none opacity-50'
+                        : 'cursor-pointer'
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </div>
       )}
     </div>
   );

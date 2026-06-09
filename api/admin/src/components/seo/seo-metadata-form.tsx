@@ -188,7 +188,7 @@ export function SeoMetadataForm({ seo = {}, onChange, baseSlug }: SeoMetadataFor
                       <Label htmlFor="ogImageWidth" className="text-xs text-muted-foreground">Width</Label>
                       <Input
                         id="ogImageWidth"
-                        type="number"
+                        type="number" step="any"
                         value={seo.ogImageWidth || ''}
                         onChange={(e) => updateSeo('ogImageWidth', Number(e.target.value))}
                         placeholder="1200"
@@ -198,7 +198,7 @@ export function SeoMetadataForm({ seo = {}, onChange, baseSlug }: SeoMetadataFor
                       <Label htmlFor="ogImageHeight" className="text-xs text-muted-foreground">Height</Label>
                       <Input
                         id="ogImageHeight"
-                        type="number"
+                        type="number" step="any"
                         value={seo.ogImageHeight || ''}
                         onChange={(e) => updateSeo('ogImageHeight', Number(e.target.value))}
                         placeholder="630"

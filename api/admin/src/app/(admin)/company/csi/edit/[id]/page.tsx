@@ -1,15 +1,14 @@
-import React from 'react'
-import EditCsi from './csi-edit-form'
+import EditCsi from './csi-edit-form';
 
-type Props = {
-    params: Promise<{ id: string }>
+export function generateStaticParams(): { id: string }[] {
+  return [{ id: 'placeholder' }];
 }
 
-const page = async ({ params }: Props) => {
-    const { id } = await params;
-    return (
-        <EditCsi id={id} />
-    )
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <EditCsi id={id} />;
 }
-
-export default page

@@ -68,8 +68,15 @@ function formatPrice(
   return `${currency} ${formatted}${suffix}`;
 }
 
-function PropertyCard({ property, onAction }: { property: any; onAction: () => void }) {
-  const primaryImage = property.images?.find((img: any) => img.isPrimary) || property.images?.[0];
+function PropertyCard({
+  property,
+  onAction,
+}: {
+  property: any;
+  onAction: () => void;
+}) {
+  const primaryImage =
+    property.images?.find((img: any) => img.isPrimary) || property.images?.[0];
   const imageUrl = primaryImage ? getImageUrl(primaryImage.url) : '';
   const [imageError, setImageError] = useState(false);
 
@@ -77,7 +84,11 @@ function PropertyCard({ property, onAction }: { property: any; onAction: () => v
     ? `${property.houseDetails.bedrooms} bed · ${property.houseDetails.bathrooms} bath`
     : null;
 
-  const location = property.locationText || property.city || property.district || 'Location not set';
+  const location =
+    property.locationText ||
+    property.city ||
+    property.district ||
+    'Location not set';
 
   return (
     <Card className="group overflow-hidden border-border/60 transition-all duration-200 hover:border-border hover:shadow-md">
@@ -116,7 +127,11 @@ function PropertyCard({ property, onAction }: { property: any; onAction: () => v
               {property.listingType === 'RENT' ? 'Rent' : 'Price'}
             </p>
             <p className="truncate text-sm font-medium tabular-nums">
-              {formatPrice(property.priceAmount, property.currency, property.pricePeriod)}
+              {formatPrice(
+                property.priceAmount,
+                property.currency,
+                property.pricePeriod,
+              )}
             </p>
           </div>
           {detailLine && (
@@ -126,8 +141,12 @@ function PropertyCard({ property, onAction }: { property: any; onAction: () => v
           )}
         </div>
         <div className="pt-1">
-          <Link href={`/properties/edit/${property.id}`} className="block">
-            <Button variant="outline" size="sm" className="h-8 w-full text-xs font-medium">
+          <Link href={`/properties/edit?id=${property.id}`} className="block">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-full text-xs font-medium"
+            >
               <Edit className="mr-1.5 h-3 w-3" strokeWidth={2} />
               Edit
             </Button>
@@ -166,8 +185,16 @@ export default function HousesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
-          <Input placeholder="Search houses..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-9 pl-9 text-sm" />
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            strokeWidth={1.75}
+          />
+          <Input
+            placeholder="Search houses..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 pl-9 text-sm"
+          />
         </div>
         <Link href="/properties/create">
           <Button size="sm" className="h-9 w-full sm:w-auto">
@@ -184,20 +211,28 @@ export default function HousesPage() {
           </div>
           <p className="text-sm font-medium">No houses found</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {searchQuery ? 'Try adjusting your search' : 'Add your first house property'}
+            {searchQuery
+              ? 'Try adjusting your search'
+              : 'Add your first house property'}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredProperties.map((property: any) => (
-            <PropertyCard key={property.id} property={property} onAction={handleAction} />
+            <PropertyCard
+              key={property.id}
+              property={property}
+              onAction={handleAction}
+            />
           ))}
         </div>
       )}
 
       {filteredProperties.length > 0 && (
         <p className="border-t border-border/60 pt-4 text-center text-xs text-muted-foreground tabular-nums">
-          Showing {filteredProperties.length} of {properties.filter((p: any) => p.propertyType === 'HOUSE').length} houses
+          Showing {filteredProperties.length} of{' '}
+          {properties.filter((p: any) => p.propertyType === 'HOUSE').length}{' '}
+          houses
         </p>
       )}
     </div>

@@ -168,7 +168,7 @@ function PropertyCard({
         </div>
 
         <div className="space-y-1.5 pt-1">
-          <Link href={`/properties/edit/${property.id}`} className="block">
+          <Link href={`/properties/edit?id=${property.id}`} className="block">
             <Button
               variant="outline"
               size="sm"

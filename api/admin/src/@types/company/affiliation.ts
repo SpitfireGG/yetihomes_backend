@@ -17,5 +17,32 @@ export interface AffiliationFormData {
 
 export interface CompanyAffiliationTranslationDataForm {
   link?: string;
-  translations?: any[];
+  translations: {
+    language_id: string;
+    title: string;
+    description: string;
+  }[];
+}
+
+export interface CreateAffiliationDto {
+  image: File | string | null;
+  link: string;
+  translations: {
+    language_id: string;
+    title: string;
+    description: string;
+  }[];
+}
+
+export interface CompanyAffiliationApiResponse {
+  id: string;
+  link: string;
+  imageUrl: string;
+  translations: {
+    language_id: string;
+    title: string;
+    description: string;
+  }[];
+  createdAt: string;
+  updatedAt: string;
 }

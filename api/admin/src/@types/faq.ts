@@ -34,9 +34,6 @@ export type TripFaqFormData = {
         language_id: string;
         question: string;
         answer: string;
-        // language: {
-        //     name: string
-        // }
     }[]
 }
 

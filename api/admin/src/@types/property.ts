@@ -3,14 +3,16 @@ export type ListingType = "SALE" | "RENT";
 export type PropertyStatus = "DRAFT" | "PUBLISHED" | "SOLD" | "RENTED" | "ARCHIVED";
 export type PricePeriod = "TOTAL" | "MONTHLY" | "YEARLY";
 export type CurrencyCode = "NPR" | "USD";
-export type AreaUnit = "SQ_FT" | "SQ_M" | "AANA" | "ROPANI";
+export type AreaUnit = "SQ_FT" | "SQ_M" | "AANA" | "ROPANI" | "BIGHA" | "KATTHA" | "DHUR";
 export type BadgeTone = "NEUTRAL" | "WARM" | "COOL";
 export type FurnishingStatus = "UNFURNISHED" | "SEMI_FURNISHED" | "FULLY_FURNISHED";
-export type HouseSubType = "BUNGALOW" | "VILLA" | "DUPLEX" | "TOWNHOUSE";
+export type HouseSubType = "BUNGALOW" | "SEMI_BUNGALOW" | "VILLA" | "DUPLEX" | "TOWNHOUSE" | "COMMERCIAL" | "SEMI_COMMERCIAL" | "FLAT_SYSTEM_HOSUE" | "COLONY_HOUSE";
 export type HouseUsageType = "RESIDENTIAL" | "COMMERCIAL" | "SEMI_COMMERCIAL";
-export type ApartmentSubType = "STUDIO" | "APARTMENT" | "PENTHOUSE" | "CONDO";
-export type LandSubType = "RESIDENTIAL_PLOT" | "COMMERCIAL_LAND" | "AGRICULTURAL_LAND";
+export type ApartmentSubType = "STUDIO" | "APARTMENT" | "PENTHOUSE" | "CONDO" | "LUXURY";
+export type LandSubType = "RESIDENTIAL_PLOT" | "COMMERCIAL_LAND" | "AGRICULTURAL_LAND" | "COLONY_LAND" | "GUTHI_LAND";
 export type FacingDirection = "EAST" | "WEST" | "NORTH" | "SOUTH" | "NORTH_EAST" | "NORTH_WEST" | "SOUTH_EAST" | "SOUTH_WEST";
+export type RoadType = "PITCHED" | "CONCRETE" | "GRAVEL" | "UNDER_CONSTRUCTION" | "NONE";
+export type ServiceNearbyType = "SCHOOL" | "HOSPITAL" | "PHARMACY" | "SUPERMARKET" | "PARK" | "TEMPLE" | "MOSQUE" | "CHURCH" | "GYM" | "RESTAURANT" | "BANK" | "ATM" | "GAS_STATION" | "BUS_STOP" | "AIRPORT" | "OTHER";
 
 export type InquiryType = "GENERAL" | "PROPERTY" | "SCHEDULE_VISIT" | "SELLER";
 export type InquiryStatus = "NEW" | "CONTACTED" | "CLOSED" | "SPAM";
@@ -19,6 +21,7 @@ export interface Property {
   id: string;
   title: string;
   slug: string;
+  propertyCode: string | null;
   summary: string | null;
   description: string;
   propertyType: PropertyType;
@@ -52,6 +55,7 @@ export interface Property {
   landDetails: LandDetails | null;
   images: PropertyImage[];
   propertyAmenities: PropertyAmenity[];
+  servicesNearby: ServiceNearby[];
   inquiries: Inquiry[];
 }
 
@@ -67,6 +71,9 @@ export interface HouseDetails {
   parkingSpaces: number | null;
   furnishingStatus: FurnishingStatus | null;
   buildYear: number | null;
+  facingDirection: FacingDirection | null;
+  roadType: RoadType | null;
+  roadSize: number | null;
 }
 
 export interface ApartmentDetails {
@@ -81,6 +88,9 @@ export interface ApartmentDetails {
   hasLift: boolean;
   hasParking: boolean;
   furnishingStatus: FurnishingStatus | null;
+  facingDirection: FacingDirection | null;
+  roadType: RoadType | null;
+  roadSize: number | null;
 }
 
 export interface LandDetails {
@@ -119,6 +129,13 @@ export interface Amenity {
   createdAt: string;
 }
 
+export interface ServiceNearby {
+  id: string;
+  propertyId: string;
+  serviceType: ServiceNearbyType;
+  name: string;
+}
+
 export interface Inquiry {
   id: string;
   propertyId: string | null;
@@ -136,6 +153,7 @@ export interface Inquiry {
 export interface PropertyFormData {
   title: string;
   slug: string;
+  propertyCode?: string;
   summary?: string;
   description: string;
   propertyType: PropertyType;
@@ -152,4 +170,5 @@ export interface PropertyFormData {
   houseDetails?: Partial<HouseDetails>;
   apartmentDetails?: Partial<ApartmentDetails>;
   landDetails?: Partial<LandDetails>;
+  servicesNearby?: { serviceType: ServiceNearbyType; name: string }[];
 }
