@@ -171,7 +171,7 @@ export default function CreatePropertyPage() {
     latitude: 0,
     longitude: 0,
     propertyCode: '',
-    priceAmount: 0,
+    priceAmount: "",
     currency: 'NPR',
     pricePeriod: 'TOTAL',
     status: 'DRAFT',
@@ -242,7 +242,7 @@ export default function CreatePropertyPage() {
         ...formData,
         propertyType,
         listingType,
-        priceAmount: Number(formData.priceAmount),
+        priceAmount: Number(String(formData.priceAmount).replace(/,/g, "")),
         areaValue: Number(formData.areaValue),
         latitude: formData.latitude ? Number(formData.latitude) : null,
         longitude: formData.longitude ? Number(formData.longitude) : null,
@@ -580,16 +580,15 @@ export default function CreatePropertyPage() {
             <div className="space-y-2">
               <Label>Price Amount</Label>
               <Input
-                type="number"
-                step="any"
+                type="text"
                 value={formData.priceAmount || ''}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    priceAmount: Number(e.target.value),
+                    priceAmount: e.target.value.replace(/[^0-9,]/g, ""),
                   })
                 }
-                placeholder="0"
+                placeholder="e.g. 3,60,00,000"
                 required
               />
             </div>

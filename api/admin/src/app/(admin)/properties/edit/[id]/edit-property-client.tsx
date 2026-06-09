@@ -208,7 +208,7 @@ export default function EditPropertyPage({ id: propId }: { id?: string }) {
     city: '',
     latitude: 0 as number | null,
     longitude: 0 as number | null,
-    priceAmount: 0,
+    priceAmount: "",
     currency: 'NPR',
     pricePeriod: 'TOTAL',
     status: 'DRAFT',
@@ -306,7 +306,7 @@ export default function EditPropertyPage({ id: propId }: { id?: string }) {
           city: property.city || '',
           latitude: property.latitude || null,
           longitude: property.longitude || null,
-          priceAmount: property.priceAmount || 0,
+          priceAmount: property.priceAmount || "",
           currency: property.currency || 'NPR',
           pricePeriod: property.pricePeriod || 'TOTAL',
           status: property.status || 'DRAFT',
@@ -391,7 +391,7 @@ export default function EditPropertyPage({ id: propId }: { id?: string }) {
         ...formData,
         propertyType,
         listingType,
-        priceAmount: Number(formData.priceAmount),
+        priceAmount: Number(String(formData.priceAmount).replace(/,/g, "")),
         areaValue: Number(formData.areaValue),
         latitude: formData.latitude ? Number(formData.latitude) : null,
         longitude: formData.longitude ? Number(formData.longitude) : null,
@@ -771,16 +771,15 @@ export default function EditPropertyPage({ id: propId }: { id?: string }) {
             <div className="space-y-2">
               <Label>Price Amount</Label>
               <Input
-                type="number"
-                step="any"
+                type="text"
                 value={formData.priceAmount || ''}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    priceAmount: Number(e.target.value),
+                    priceAmount: e.target.value.replace(/[^0-9,]/g, ""),
                   })
                 }
-                placeholder="0"
+                placeholder="e.g. 3,60,00,000"
                 required
               />
             </div>
